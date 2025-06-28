@@ -19,14 +19,9 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Resource Include="icon.ico"/>
-        <None Remove="Icons\Dexa.ico"/>
-        <Resource Include="Icons\Dexa.ico">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Resource>
-        <None Remove="Icons\Dexa.png"/>
+        <Resource Include="Icons\Dexa.ico"/>
         <Resource Include="Icons\Dexa.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Resource>
         <None Update="scrcpy\adb.exe">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -72,6 +67,9 @@
         </None>
         <None Update="scrcpy\swresample-5.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Include="Icons\DexaLogo.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
     </ItemGroup>
 

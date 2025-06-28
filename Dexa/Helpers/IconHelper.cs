@@ -43,7 +43,7 @@ public static class IconHelper
 
     public static Icon GetAppIcon()
     {
-        string pngPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Icons", "Dexa.png");
+        string pngPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Icons", "DexaLogo.png");
         return CreateIconFromPng(pngPath);
     }
 
