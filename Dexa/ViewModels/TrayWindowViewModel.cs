@@ -23,6 +23,12 @@ namespace Dexa.ViewModels
         }
 
         [RelayCommand]
+        private void RefreshDevices()
+        {
+            Devices = new ObservableCollection<Device>(DeviceRepository.GetDevices());
+        }
+
+        [RelayCommand]
         private void ShowHelp()
         {
             var helpWindow = new HelpWindow

@@ -4,7 +4,7 @@ using System.Windows;
 
 namespace Dexa.Views
 {
-    public partial class TrayWindow : Window
+    public partial class TrayWindow : BaseWindow
     {
         public TrayWindow()
         {

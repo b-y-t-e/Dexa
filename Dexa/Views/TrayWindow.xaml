@@ -1,11 +1,13 @@
 
-<Window x:Class="Dexa.Views.TrayWindow"
+<views:BaseWindow x:Class="Dexa.Views.TrayWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:Dexa.Views"
         xmlns:viewModels="clr-namespace:Dexa.ViewModels"
         xmlns:converters="clr-namespace:Dexa.Converters"
+        xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance viewModels:TrayWindowViewModel}"
         Title="Dexa Tray"
@@ -14,6 +16,11 @@
         SizeToContent="WidthAndHeight"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ShowInTaskbar="False" Topmost="True" Deactivated="Window_Deactivated">
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="WindowActivated">
+            <i:InvokeCommandAction Command="{Binding RefreshDevicesCommand}"/>
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
     <Window.Resources>
         <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -45,4 +52,4 @@
             <Button Content="Exit" Command="{Binding ExitApplicationCommand}" Margin="5,0,5,5"/>
         </StackPanel>
     </Border>
-</Window>
+</views:BaseWindow>
