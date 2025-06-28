@@ -4,5 +4,5 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Help"
         Content="This is the help window."
-        Height="300" Width="400">
+        SizeToContent="WidthAndHeight">
 </Window>

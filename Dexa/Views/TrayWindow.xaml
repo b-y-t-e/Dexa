@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance viewModels:TrayWindowViewModel}"
         Title="Dexa Tray"
-        Height="200" Width="150"
+        SizeToContent="WidthAndHeight"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ShowInTaskbar="False" Topmost="True" Deactivated="Window_Deactivated">
     <Border Background="White" BorderBrush="Gray" BorderThickness="1" CornerRadius="5">
