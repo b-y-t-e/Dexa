@@ -36,7 +36,7 @@ namespace Dexa.ViewModels
         [RelayCommand]
         private void ExitApplication()
         {
-            Application.Current.Shutdown();
+            System.Windows.Application.Current.Shutdown();
         }
     }
 }

@@ -3,12 +3,13 @@ using System.Windows.Media.Imaging;
 using Dexa.ViewModels;
 using Dexa.Views;
 using H.NotifyIcon;
-using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using System.Windows.Media;
 using System.Drawing;
 
 namespace Dexa
 {
-    public partial class App : Application
+    public partial class App : System.Windows.Application
     {
         private TrayWindow? _trayWindow;
         private TaskbarIcon? _trayIcon;
@@ -44,13 +45,28 @@ namespace Dexa
         {
             if (_trayWindow == null) return;
 
-            // Get cursor position using P/Invoke
-            POINT lpPoint;
-            GetCursorPos(out lpPoint);
-
-            _trayWindow.Left = lpPoint.X - _trayWindow.Width / 2;
-            _trayWindow.Top = lpPoint.Y - _trayWindow.Height;
             _trayWindow.Show();
+
+            // Get cursor position using System.Windows.Forms.Cursor.Position
+            System.Drawing.Point cursorPosition = System.Windows.Forms.Cursor.Position;
+
+            // Convert screen coordinates to device-independent units
+            PresentationSource presentationSource = PresentationSource.FromVisual(_trayWindow);
+            if (presentationSource != null && presentationSource.CompositionTarget != null)
+            {
+                Matrix transform = presentationSource.CompositionTarget.TransformFromDevice;
+                System.Windows.Point transformedCursorPosition = transform.Transform(new System.Windows.Point(cursorPosition.X, cursorPosition.Y));
+
+                _trayWindow.Left = transformedCursorPosition.X - _trayWindow.ActualWidth / 2;
+                _trayWindow.Top = transformedCursorPosition.Y - _trayWindow.ActualHeight;
+            }
+            else
+            {
+                // Fallback if PresentationSource is not available
+                _trayWindow.Left = cursorPosition.X - _trayWindow.ActualWidth / 2;
+                _trayWindow.Top = cursorPosition.Y - _trayWindow.ActualHeight;
+            }
+
             _trayWindow.Activate();
         }
 
@@ -58,17 +74,6 @@ namespace Dexa
         {
             _trayIcon?.Dispose();
             base.OnExit(e);
-        }
-
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool GetCursorPos(out POINT lpPoint);
-
-        [StructLayout(LayoutKind.Sequential)]
-        public struct POINT
-        {
-            public int X;
-            public int Y;
         }
     }
 }
