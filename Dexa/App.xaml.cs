@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using Dexa.ViewModels;
@@ -6,6 +7,8 @@ using H.NotifyIcon;
 using System.Windows.Forms;
 using System.Windows.Media;
 using System.Drawing;
+using Else.PhoneMirror.Repositories;
+using Else.PhoneMirror.ViewModels;
 
 namespace Dexa
 {
@@ -13,6 +16,7 @@ namespace Dexa
     {
         private TrayWindow? _trayWindow;
         private TaskbarIcon? _trayIcon;
+        private bool _isAppClosed;
 
         protected override void OnStartup(StartupEventArgs e)
         {
@@ -39,6 +43,81 @@ namespace Dexa
                 _trayIcon.ForceCreate(true);
                 _trayIcon.TrayLeftMouseDown += (sender, args) => ShowTrayWindow();
             }
+
+            KeyboardInterceptorWinForms.InitializeHook();
+            ThreadPool.QueueUserWorkItem(DeviceWatcherThread);
+        }
+
+        private void DeviceWatcherThread(object? _)
+        {
+            while (!_isAppClosed)
+            {
+                try
+                {
+                    UpdateNewDevicesInRepository();
+
+                    if (_isAppClosed)
+                        return;
+
+                    var devices = DeviceRepository.GetDevices();
+
+                    ScrCpyRunners.Apply(devices);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+                finally
+                {
+                    if (ScrCpyRunners.ActiveCount > 0)
+                        Thread.Sleep(1500);
+                    else
+                        Thread.Sleep(500);
+                }
+            }
+        }
+
+        private void UpdateNewDevicesInRepository()
+        {
+            var currentDevices = ScrCpy
+                .GetAllDevices()
+                // .Where(x => !x.IsEmulator)
+                .ToList();
+
+            AddDevicesInRepository(currentDevices);
+        }
+
+        /// <summary>
+        /// Aktualizuje repozytorium o nowe urządzenia lub aktualizuje istniejące
+        /// </summary>
+        /// <param name="currentDevices">Lista aktualnie wykrytych urządzeń</param>
+        private void AddDevicesInRepository(List<Device> currentDevices)
+        {
+            if (currentDevices.Count == 0)
+                return;
+
+            // Pobierz zapisane urządzenia
+            var savedDevices = DeviceRepository.GetDevices();
+
+            foreach (var currentDevice in currentDevices)
+            {
+                // Sprawdź czy urządzenie jest już w repozytorium
+                var existingDevice = savedDevices.FirstOrDefault(d => d.Name == currentDevice.Name);
+
+                if (existingDevice != null)
+                {
+                    // Aktualizuj istniejące urządzenie
+                    existingDevice.Update(currentDevice);
+                }
+                else
+                {
+                    // Dodaj nowe urządzenie do repozytorium
+                    DeviceRepository.Add(currentDevice);
+                }
+            }
+
+            // Zapisz zmiany
+            DeviceRepository.SaveToFile();
         }
 
         private void ShowTrayWindow()
@@ -72,7 +151,9 @@ namespace Dexa
 
         protected override void OnExit(ExitEventArgs e)
         {
+            _isAppClosed = true;
             _trayIcon?.Dispose();
+            ScrCpyRunners.TurnOff();
             base.OnExit(e);
         }
     }
