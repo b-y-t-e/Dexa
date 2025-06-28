@@ -1,9 +1,9 @@
 ﻿<Application x:Class="Dexa.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:Dexa"
-             StartupUri="MainWindow.xaml">
+             xmlns:tb="clr-namespace:H.NotifyIcon;assembly=H.NotifyIcon.Wpf"
+             ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
-         
+        <tb:TaskbarIcon x:Key="TrayIcon"/>
     </Application.Resources>
 </Application>

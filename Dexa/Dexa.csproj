@@ -2,10 +2,19 @@
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
-        <TargetFramework>net8.0-windows</TargetFramework>
+        <TargetFramework>net9.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UseWPF>true</UseWPF>
     </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+      <PackageReference Include="H.NotifyIcon.Wpf" Version="2.3.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Resource Include="icon.ico" />
+    </ItemGroup>
 
 </Project>
