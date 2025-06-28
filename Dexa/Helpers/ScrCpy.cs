@@ -37,6 +37,7 @@ public static class ScrCpy
             {
                 var ip = GetIp(deviceName);
                 var isEmulator = deviceName.ToLower().Contains("emulator");
+                var isWifi = IpHelper.IsIpAddress(deviceName);
                 return Device.Create(
                     deviceName,
                     isEnabled: !isEmulator,
@@ -44,7 +45,7 @@ public static class ScrCpy
                     isRemoteConnection: IpHelper.IsIpAddress(deviceName),
                     isEmulator: isEmulator,
                     isNetworkVisible: IpHelper.IsLocalIpAddress(ip),
-                    firendlyName: GetDeviceFriendlyName(deviceName));
+                    firendlyName: GetDeviceFriendlyName(deviceName, isWifi));
             })
             .ToList();
 
@@ -60,30 +61,31 @@ public static class ScrCpy
         return allDevices;
     }
 
-    private static string GetDeviceFriendlyName(string deviceName)
+    private static string GetDeviceFriendlyName(string deviceName, bool isWifi)
     {
         try
         {
             var deviceInfo = ScrCpy.GetDeviceInfo(deviceName);
-
+            var friendlyName = "";
             // Podstawowy opis urządzenia (producent i model)
-            if (deviceInfo.TryGetValue("Manufacturer", out var manufacturer) &&
+            /*if (deviceInfo.TryGetValue("Manufacturer", out var manufacturer) &&
                 deviceInfo.TryGetValue("Model", out var model))
             {
-                return $"{manufacturer.FirstLetterCapital()} ⫽ {model}";
-            }
-            else if (deviceInfo.TryGetValue("Model", out var modelOnly))
-            {
-                return modelOnly;
-            }
-            /*else if (deviceInfo.TryGetValue("Name", out var name))
-            {
-                return name;
+                friendlyName += $"{manufacturer.FirstLetterCapital()} ⫽ {model}";
             }*/
-            else
+            if (deviceInfo.TryGetValue("Model", out var modelOnly))
             {
-                return deviceName;
+                friendlyName += modelOnly;
             }
+            /* if (deviceInfo.TryGetValue("Name", out var name))
+            {
+                friendlyName += name;
+            }*/
+
+            if (isWifi)
+                friendlyName += " ⫽ WiFi";
+
+            return friendlyName;
         }
         catch (Exception ex)
         {
@@ -151,20 +153,20 @@ public static class ScrCpy
         err = err;
     }
 
-   /* public static Size GetScreenSize(string device)
-    {
-        // // adb -s 1234abcd exec-out wm size
-        var lines = RunAdb($"-s {device} exec-out wm size")
-            .Split(new[] { '\n', '\r', ' ' })
-            .ToList();
+    /* public static Size GetScreenSize(string device)
+     {
+         // // adb -s 1234abcd exec-out wm size
+         var lines = RunAdb($"-s {device} exec-out wm size")
+             .Split(new[] { '\n', '\r', ' ' })
+             .ToList();
 
-        if (lines.Count >= 3)
-            return new Size(
-                int.Parse(lines[2].Split('x')[0].Trim()),
-                int.Parse(lines[2].Split('x')[1].Trim()));
+         if (lines.Count >= 3)
+             return new Size(
+                 int.Parse(lines[2].Split('x')[0].Trim()),
+                 int.Parse(lines[2].Split('x')[1].Trim()));
 
-        return new Size();
-    }*/
+         return new Size();
+     }*/
 
     public static string BuildScrcpyArguments(
         Device HardwareDevice,
