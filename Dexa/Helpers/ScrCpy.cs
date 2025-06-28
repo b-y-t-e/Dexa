@@ -40,6 +40,7 @@ public static class ScrCpy
                 var isWifi = IpHelper.IsIpAddress(deviceName);
                 return Device.Create(
                     deviceName,
+                    hardwareName: deviceName,
                     isEnabled: !isEmulator,
                     ipAddress: ip,
                     isRemoteConnection: IpHelper.IsIpAddress(deviceName),
@@ -48,6 +49,20 @@ public static class ScrCpy
                     firendlyName: GetDeviceFriendlyName(deviceName, isWifi));
             })
             .ToList();
+
+        foreach (var device in allDevices)
+        {
+            if (!device.IsRemoteConnection)
+                continue;
+
+            var hardwareDevice = allDevices
+                .FirstOrDefault(x => !x.IsRemoteConnection || x.IpAddress == device.IpAddress);
+
+            if (hardwareDevice == null)
+                continue;
+
+            device.HardwareName = hardwareDevice.Name;
+        }
 
         /*
         allDevices = allDevices

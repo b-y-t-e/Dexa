@@ -57,5 +57,15 @@ namespace Dexa.ViewModels
                 ScrCpy.ConnectWirelessTo(device.Name, device.IpAddress);
             }
         }
+
+        [RelayCommand]
+        private void DisconnectWireless(Device device)
+        {
+            if (device != null && !string.IsNullOrEmpty(device.Name))
+            {
+                ScrCpy.DisconnectWireless(device.Name);
+                DeviceRepository.Remove(device.Name);
+            }
+        }
     }
 }

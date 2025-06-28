@@ -28,6 +28,7 @@ public class Device
 {
     public string FriendlyName { get; set; }
     public string Name { get; set; }
+    public string HardwareName { get; set; }
     public string? IpAddress { get; set; }
     public bool IsRemoteConnection { get; set; }
     public bool IsEmulator { get; set; }
@@ -37,7 +38,9 @@ public class Device
     public DeviceMedia? DeviceMedia { get; set; }
     public bool IsRunning { get; set; }
 
-    public static Device Create(string name,
+    public static Device Create(
+        string name,
+        string hardwareName,
         bool isEnabled,
         string? ipAddress,
         bool isRemoteConnection,
@@ -47,6 +50,7 @@ public class Device
         {
             IsRunning = isEnabled,
             Name = name,
+            HardwareName = hardwareName,
             FriendlyName = firendlyName,
             IpAddress = ipAddress,
             IsRemoteConnection = isRemoteConnection,
@@ -68,6 +72,7 @@ public class Device
         IsRemoteConnection = updatedDevice.IsRemoteConnection;
         IsEmulator = updatedDevice.IsEmulator;
         IsNetworkVisible = updatedDevice.IsNetworkVisible;
+        HardwareName = updatedDevice.HardwareName ?? HardwareName;
 
         return this;
     }
@@ -79,7 +84,6 @@ public class Device
 
         DeviceMedia.WasMediaPlaying = isMediaPlaying;
         DeviceMedia.MediaPaused = isMediaPlaying ? DateTime.UtcNow : null;
-
     }
 
     public void Enable()

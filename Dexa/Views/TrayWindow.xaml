@@ -16,6 +16,7 @@
         ShowInTaskbar="False" Topmost="True" Deactivated="Window_Deactivated">
     <Window.Resources>
         <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Window.Resources>
     <Border Background="White" BorderBrush="Gray" BorderThickness="1" CornerRadius="5">
         <StackPanel>
@@ -32,6 +33,10 @@
                                     Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ConnectWirelessCommand}"
                                     CommandParameter="{Binding}"
                                     Visibility="{Binding IsRemoteConnection, Converter={StaticResource InverseBooleanToVisibilityConverter}}"/>
+                            <Button Grid.Column="1" Content="&#xE778;" FontFamily="Segoe MDL2 Assets" Margin="5,0,0,0"
+                                    Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.DisconnectWirelessCommand}"
+                                    CommandParameter="{Binding}"
+                                    Visibility="{Binding IsRemoteConnection, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
