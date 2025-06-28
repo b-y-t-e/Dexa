@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Drawing;
 using Else.PhoneMirror.Repositories;
 using Else.PhoneMirror.ViewModels;
+using Size = System.Windows.Size;
 
 namespace Dexa
 {
@@ -24,7 +25,8 @@ namespace Dexa
 
             _trayWindow = new TrayWindow
             {
-                DataContext = new TrayWindowViewModel()
+                DataContext = new TrayWindowViewModel(),
+                WindowStartupLocation = WindowStartupLocation.Manual
             };
 
             _trayIcon = (TaskbarIcon)FindResource("TrayIcon");
@@ -124,7 +126,12 @@ namespace Dexa
         {
             if (_trayWindow == null) return;
 
+            // Make the window temporarily invisible to prevent flash
+            _trayWindow.Opacity = 0;
             _trayWindow.Show();
+
+            // Force layout update to get ActualWidth and ActualHeight
+            _trayWindow.UpdateLayout();
 
             // Get cursor position using System.Windows.Forms.Cursor.Position
             System.Drawing.Point cursorPosition = System.Windows.Forms.Cursor.Position;
@@ -146,6 +153,8 @@ namespace Dexa
                 _trayWindow.Top = cursorPosition.Y - _trayWindow.ActualHeight;
             }
 
+            // Make the window fully visible
+            _trayWindow.Opacity = 1;
             _trayWindow.Activate();
         }
 
