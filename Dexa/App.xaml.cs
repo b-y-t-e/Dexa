@@ -28,7 +28,7 @@ namespace Dexa
             {
                 try
                 {
-                    var iconUri = new System.Uri("pack://application:,,,/icon.ico");
+                    var iconUri = new System.Uri("pack://application:,,,/Icons/Dexa.ico");
                     _trayIcon.IconSource = new BitmapImage(iconUri);
                 }
                 catch (System.Exception ex)
