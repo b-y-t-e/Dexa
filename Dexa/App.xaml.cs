@@ -44,6 +44,7 @@ namespace Dexa
                 }
                 _trayIcon.ForceCreate(true);
                 _trayIcon.TrayLeftMouseDown += (sender, args) => ShowTrayWindow();
+                _trayIcon.TrayRightMouseDown += (sender, args) => ShowTrayWindow();
             }
 
             KeyboardInterceptorWinForms.InitializeHook();
