@@ -52,6 +52,7 @@ namespace Else.PhoneMirror.Repositories
                 existingDevice.IsEmulator = device.IsEmulator;
                 existingDevice.IsNetworkVisible = device.IsNetworkVisible;
                 existingDevice.IsRemoteConnection = device.IsRemoteConnection;
+                existingDevice.CanBeRemoteConnected = device.CanBeRemoteConnected;
                 existingDevice.IpAddress = device.IpAddress;
             }
             else
