@@ -1,4 +1,3 @@
-
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
@@ -14,6 +13,7 @@ namespace Dexa.ViewModels
     public class TrayWindowViewModel : INotifyPropertyChanged
     {
         private ObservableCollection<Device> _devices;
+
         public ObservableCollection<Device> Devices
         {
             get => _devices;
@@ -25,6 +25,7 @@ namespace Dexa.ViewModels
         }
 
         private Device? _selectedDevice;
+
         public Device? SelectedDevice
         {
             get => _selectedDevice;
@@ -32,6 +33,7 @@ namespace Dexa.ViewModels
         }
 
         private bool _isDeviceListEmpty;
+
         public bool IsDeviceListEmpty
         {
             get => _isDeviceListEmpty;
@@ -116,6 +118,7 @@ namespace Dexa.ViewModels
 
         private void ConnectWireless(Device device)
         {
+            System.Windows.Application.Current.Windows[0].Hide(); // Close the tray window
             if (device != null && !string.IsNullOrEmpty(device.Name) && !string.IsNullOrEmpty(device.IpAddress))
             {
                 ScrCpy.ConnectWireless(device.Name);
@@ -127,10 +130,16 @@ namespace Dexa.ViewModels
 
         private void DisconnectWireless(Device device)
         {
+            System.Windows.Application.Current.Windows[0].Hide(); // Close the tray window
             if (device != null && !string.IsNullOrEmpty(device.Name))
             {
                 ScrCpy.DisconnectWireless(device.Name);
                 DeviceRepository.Remove(device.Name);
+
+                foreach (var x in Devices.ToArray())
+                    Devices.Remove(x);
+                foreach (var x in DeviceRepository.GetDevices())
+                    Devices.Add(x);
             }
         }
     }

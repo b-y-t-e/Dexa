@@ -101,13 +101,13 @@
                                     Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ConnectWirelessCommand}"
                                     CommandParameter="{Binding}" HorizontalAlignment="Stretch"
                                     Visibility="{Binding CanBeRemoteConnected, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <TextBlock Margin="10, 3" Text="&#xE70B;" />
+                                <TextBlock Margin="10, 3" Text="&#xE703;" />
                             </Button>
                             <Button Grid.Column="1" FontFamily="Segoe MDL2 Assets" Margin="5,0,0,0"
                                     Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.DisconnectWirelessCommand}"
                                     CommandParameter="{Binding}" HorizontalAlignment="Stretch"
                                     Visibility="{Binding IsRemoteConnection, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <TextBlock Margin="10, 3" Text="&#xE778;" />
+                                <TextBlock Margin="10, 3" Text="&#xE711;" />
                             </Button>
                         </Grid>
                     </DataTemplate>
