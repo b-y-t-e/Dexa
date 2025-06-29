@@ -46,7 +46,8 @@ public static class ScrCpy
                     isRemoteConnection: IpHelper.IsIpAddress(deviceName),
                     isEmulator: isEmulator,
                     isNetworkVisible: IpHelper.IsLocalIpAddress(ip),
-                    firendlyName: GetDeviceFriendlyName(deviceName, isWifi));
+                    friendlyName: GetDeviceFriendlyName(deviceName, isWifi),
+                    canBeRemoteConnected: false);
             })
             .ToList();
 
@@ -64,12 +65,16 @@ public static class ScrCpy
             device.HardwareName = hardwareDevice.Name;
         }
 
-        /*
-        allDevices = allDevices
-            .Where(device =>
-                device.IsRemoteConnection ||
-                !allDevices.Any(x => x.IsRemoteConnection && x.IpAddress == device.IpAddress))
-            .ToList();*/
+        foreach (var device in allDevices)
+        {
+            if (device.IsRemoteConnection)
+                continue;
+
+            var wifiDevice = allDevices
+                .FirstOrDefault(x => x.IsRemoteConnection || x.IpAddress == device.IpAddress);
+
+            device.CanBeRemoteConnected = wifiDevice == null;
+        }
 
         _deviceCache.Set("", allDevices, _deviceCacheDuration);
 
