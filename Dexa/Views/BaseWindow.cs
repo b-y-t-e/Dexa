@@ -18,7 +18,7 @@ namespace Dexa.Views
             Activated += OnActivated;
         }
 
-        private void OnActivated(object sender, System.EventArgs e)
+        private void OnActivated(object? sender, System.EventArgs e)
         {
             RaiseEvent(new RoutedEventArgs(WindowActivatedEvent));
         }

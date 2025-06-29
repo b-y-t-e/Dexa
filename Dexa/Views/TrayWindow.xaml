@@ -27,7 +27,9 @@
     </Window.Resources>
     <Border Background="White" BorderBrush="Gray" BorderThickness="1" CornerRadius="5">
         <StackPanel>
-            <ListBox ItemsSource="{Binding Devices}" Margin="5" SelectedItem="{Binding SelectedDevice, Mode=TwoWay}">
+            <TextBlock Text="No connected devices" Margin="5" HorizontalAlignment="Center"
+                       Visibility="{Binding IsDeviceListEmpty, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            <ListBox ItemsSource="{Binding Devices}" Margin="5" SelectedItem="{Binding SelectedDevice, Mode=TwoWay}" Visibility="{Binding IsDeviceListEmpty, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid>

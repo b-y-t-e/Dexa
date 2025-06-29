@@ -1,5 +1,6 @@
 
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -15,12 +16,38 @@ namespace Dexa.ViewModels
         private ObservableCollection<Device> _devices;
 
         [ObservableProperty]
-        private Device _selectedDevice;
+        private Device? _selectedDevice;
+
+        [ObservableProperty]
+        private bool _isDeviceListEmpty;
 
         public TrayWindowViewModel()
         {
             Devices = new ObservableCollection<Device>(DeviceRepository.GetDevices());
         }
+
+        partial void OnDevicesChanging(ObservableCollection<Device> value)
+        {
+            if (Devices != null)
+            {
+                Devices.CollectionChanged -= Devices_CollectionChanged;
+            }
+        }
+
+        partial void OnDevicesChanged(ObservableCollection<Device> value)
+        {
+            IsDeviceListEmpty = value.Count == 0;
+            if (value != null)
+            {
+                value.CollectionChanged += Devices_CollectionChanged;
+            }
+        }
+
+        private void Devices_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            IsDeviceListEmpty = Devices.Count == 0;
+        }
+
 
         [RelayCommand]
         private void RefreshDevices()
@@ -45,7 +72,7 @@ namespace Dexa.ViewModels
         }
 
         [RelayCommand]
-        partial void OnSelectedDeviceChanged(Device value)
+        partial void OnSelectedDeviceChanged(Device? value)
         {
             if (value != null)
             {
