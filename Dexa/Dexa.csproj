@@ -11,7 +11,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+        
         <PackageReference Include="H.NotifyIcon.Wpf" Version="2.3.0" />
         <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.6" />
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />

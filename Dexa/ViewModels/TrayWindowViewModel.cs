@@ -2,45 +2,54 @@
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Windows;
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using GalaSoft.MvvmLight.Command;
 using Dexa.Views;
 using Else.PhoneMirror.Repositories;
 using Else.PhoneMirror.ViewModels;
 
 namespace Dexa.ViewModels
 {
-    public partial class TrayWindowViewModel : ObservableObject
+    public class TrayWindowViewModel : INotifyPropertyChanged
     {
-        [ObservableProperty]
         private ObservableCollection<Device> _devices;
+        public ObservableCollection<Device> Devices
+        {
+            get => _devices;
+            set
+            {
+                SetProperty(ref _devices, value);
+                IsDeviceListEmpty = value.Count == 0;
+            }
+        }
 
-        [ObservableProperty]
         private Device? _selectedDevice;
+        public Device? SelectedDevice
+        {
+            get => _selectedDevice;
+            set => SetProperty(ref _selectedDevice, value);
+        }
 
-        [ObservableProperty]
         private bool _isDeviceListEmpty;
+        public bool IsDeviceListEmpty
+        {
+            get => _isDeviceListEmpty;
+            set => SetProperty(ref _isDeviceListEmpty, value);
+        }
 
         public TrayWindowViewModel()
         {
-            Devices = new ObservableCollection<Device>(DeviceRepository.GetDevices());
-        }
+            _devices = new ObservableCollection<Device>(DeviceRepository.GetDevices());
+            _devices.CollectionChanged += Devices_CollectionChanged;
+            IsDeviceListEmpty = _devices.Count == 0;
 
-        partial void OnDevicesChanging(ObservableCollection<Device> value)
-        {
-            if (Devices != null)
-            {
-                Devices.CollectionChanged -= Devices_CollectionChanged;
-            }
-        }
-
-        partial void OnDevicesChanged(ObservableCollection<Device> value)
-        {
-            IsDeviceListEmpty = value.Count == 0;
-            if (value != null)
-            {
-                value.CollectionChanged += Devices_CollectionChanged;
-            }
+            RefreshDevicesCommand = new RelayCommand(RefreshDevices);
+            ShowHelpCommand = new RelayCommand(ShowHelp);
+            ExitApplicationCommand = new RelayCommand(ExitApplication);
+            TurnOnDeviceCommand = new RelayCommand<Device>(TurnOnDevice);
+            ConnectWirelessCommand = new RelayCommand<Device>(ConnectWireless);
+            DisconnectWirelessCommand = new RelayCommand<Device>(DisconnectWireless);
         }
 
         private void Devices_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -48,14 +57,34 @@ namespace Dexa.ViewModels
             IsDeviceListEmpty = Devices.Count == 0;
         }
 
-
-        [RelayCommand]
         private void RefreshDevices()
         {
             Devices = new ObservableCollection<Device>(DeviceRepository.GetDevices());
         }
 
-        [RelayCommand]
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value))
+            {
+                return false;
+            }
+
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+
+        public RelayCommand RefreshDevicesCommand { get; private set; }
+
+        public RelayCommand ShowHelpCommand { get; private set; }
+
         private void ShowHelp()
         {
             var helpWindow = new HelpWindow
@@ -65,23 +94,26 @@ namespace Dexa.ViewModels
             helpWindow.Show();
         }
 
-        [RelayCommand]
+        public RelayCommand ExitApplicationCommand { get; private set; }
+
         private void ExitApplication()
         {
             System.Windows.Application.Current.Shutdown();
         }
 
-        [RelayCommand]
-        partial void OnSelectedDeviceChanged(Device? value)
+        public RelayCommand<Device> TurnOnDeviceCommand { get; private set; }
+
+        private void TurnOnDevice(Device device)
         {
-            if (value != null)
+            if (device != null)
             {
-                ScrCpyRunners.TurnOn(value);
+                ScrCpyRunners.TurnOn(device);
                 System.Windows.Application.Current.Windows[0].Hide(); // Close the tray window
             }
         }
 
-        [RelayCommand]
+        public RelayCommand<Device> ConnectWirelessCommand { get; private set; }
+
         private void ConnectWireless(Device device)
         {
             if (device != null && !string.IsNullOrEmpty(device.Name) && !string.IsNullOrEmpty(device.IpAddress))
@@ -91,7 +123,8 @@ namespace Dexa.ViewModels
             }
         }
 
-        [RelayCommand]
+        public RelayCommand<Device> DisconnectWirelessCommand { get; private set; }
+
         private void DisconnectWireless(Device device)
         {
             if (device != null && !string.IsNullOrEmpty(device.Name))

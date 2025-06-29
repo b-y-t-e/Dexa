@@ -57,7 +57,7 @@ public static class ScrCpy
                 continue;
 
             var hardwareDevice = allDevices
-                .FirstOrDefault(x => !x.IsRemoteConnection || x.IpAddress == device.IpAddress);
+                .FirstOrDefault(x => !x.IsRemoteConnection && x.IpAddress == device.IpAddress);
 
             if (hardwareDevice == null)
                 continue;
@@ -71,7 +71,7 @@ public static class ScrCpy
                 continue;
 
             var wifiDevice = allDevices
-                .FirstOrDefault(x => x.IsRemoteConnection || x.IpAddress == device.IpAddress);
+                .FirstOrDefault(x => x.IsRemoteConnection && x.IpAddress == device.IpAddress);
 
             device.CanBeRemoteConnected = wifiDevice == null;
         }
