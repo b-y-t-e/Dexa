@@ -11,7 +11,6 @@
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance viewModels:TrayWindowViewModel}"
         Title="Dexa Tray"
-        
         Icon="/Icons/Dexa.ico"
         SizeToContent="WidthAndHeight"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
@@ -24,10 +23,64 @@
     <Window.Resources>
         <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#1b2838"/>
+            <Setter Property="Foreground" Value="#66c0f4"/>
+            <Setter Property="BorderBrush" Value="#66c0f4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="5,0,5,5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#66c0f4"/>
+                                <Setter Property="Foreground" Value="#1b2838"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ListBox">
+            <Setter Property="Background" Value="#171a21"/>
+            <Setter Property="BorderBrush" Value="#000000"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="#66c0f4"/>
+        </Style>
+
+        <Style TargetType="ListBoxItem">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd" Padding="{TemplateBinding Padding}" Background="Transparent">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#66c0f4"/>
+                                <Setter Property="Foreground" Value="#1b2838"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Window.Resources>
-    <Border Background="White" BorderBrush="Gray" BorderThickness="1" CornerRadius="5">
+    <Border Background="#171a21" BorderBrush="#000000" BorderThickness="1" CornerRadius="5">
+        <Border.LayoutTransform>
+            <ScaleTransform ScaleX="1.2" ScaleY="1.2"/>
+        </Border.LayoutTransform>
         <StackPanel>
-            <TextBlock Text="No connected devices" Margin="5" HorizontalAlignment="Center"
+            <TextBlock Text="No connected devices" Margin="5" HorizontalAlignment="Center" Foreground="#66c0f4"
                        Visibility="{Binding IsDeviceListEmpty, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             <ListBox ItemsSource="{Binding Devices}" Margin="5" SelectedItem="{Binding SelectedDevice, Mode=TwoWay}" Visibility="{Binding IsDeviceListEmpty, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                 <ListBox.ItemTemplate>
@@ -50,8 +103,8 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <Button Content="Help" Command="{Binding ShowHelpCommand}" Margin="5,0,5,5"/>
-            <Button Content="Exit" Command="{Binding ExitApplicationCommand}" Margin="5,0,5,5"/>
+            <Button Content="Help" Command="{Binding ShowHelpCommand}"/>
+            <Button Content="Exit" Command="{Binding ExitApplicationCommand}"/>
         </StackPanel>
     </Border>
 </views:BaseWindow>
