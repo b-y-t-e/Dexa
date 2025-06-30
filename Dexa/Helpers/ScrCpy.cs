@@ -211,9 +211,9 @@ public static class ScrCpy
             args += $" --fullscreen";
 
         if (HardwareDevice.IsRemoteConnection)
-            args += $" -m 720" +
-                    $" -b 2M" +
-                    $" --max-fps=30";
+            args += $" -m 960" +
+                    $" -b 4M" +
+                    $" --max-fps=45";
         else if (isGameMode)
             args += $" -m 1024" +
                     $" -b 4M" +
