@@ -11,6 +11,7 @@ using System.Drawing;
 using Else.PhoneMirror.Repositories;
 using Else.PhoneMirror.ViewModels;
 using Size = System.Windows.Size;
+using System.Net.NetworkInformation;
 
 namespace Dexa
 {
@@ -29,11 +30,12 @@ namespace Dexa
 
             if (!createdNew)
             {
-                System.Windows.MessageBox.Show("An instance of the application is already running.", "Application already running", MessageBoxButton.OK, MessageBoxImage.Warning);
+                System.Windows.MessageBox.Show("An instance of the application is already running.",
+                    "Application already running", MessageBoxButton.OK, MessageBoxImage.Warning);
                 Shutdown();
                 return;
             }
-            
+
             base.OnStartup(e);
 
             _trayWindow = new TrayWindow
@@ -108,33 +110,74 @@ namespace Dexa
         /// Aktualizuje repozytorium o nowe urządzenia lub aktualizuje istniejące
         /// </summary>
         /// <param name="currentDevices">Lista aktualnie wykrytych urządzeń</param>
-        private void AddDevicesInRepository(List<Device> currentDevices)
+        private void AddDevicesInRepository(List<AdbDevice> currentDevices)
         {
-            if (currentDevices.Count == 0)
-                return;
-
             // Pobierz zapisane urządzenia
-            var savedDevices = DeviceRepository.GetDevices();
+            var devicesFromRepo = DeviceRepository.GetDevices();
 
-            foreach (var currentDevice in currentDevices)
+            foreach (var adbDevice in currentDevices)
             {
                 // Sprawdź czy urządzenie jest już w repozytorium
-                var existingDevice = savedDevices.FirstOrDefault(d => d.Name == currentDevice.Name);
+                var deviceFromRepo = devicesFromRepo
+                    .FirstOrDefault(d => d.Name == adbDevice.Name);
 
-                if (existingDevice != null)
+                if (deviceFromRepo != null)
                 {
-                    // Aktualizuj istniejące urządzenie
-                    existingDevice.Update(currentDevice);
+                    deviceFromRepo.MakeAvailable();
+                    deviceFromRepo.Update(adbDevice);
+                    DeviceRepository.Update(deviceFromRepo);
                 }
                 else
                 {
-                    // Dodaj nowe urządzenie do repozytorium
-                    DeviceRepository.Add(currentDevice);
+                    var newDevice = Device.Create(adbDevice);
+                    newDevice.MakeAvailable();
+                    DeviceRepository.Add(newDevice);
+                }
+            }
+
+            foreach (var deviceFromRepo in devicesFromRepo)
+            {
+                var currentDevice = currentDevices
+                    .FirstOrDefault(d => d.Name == deviceFromRepo.Name);
+
+                if (currentDevice != null)
+                    continue;
+
+                var isPingable = deviceFromRepo.IsRemoteConnection &&
+                                 CheckIsDevicePingable(deviceFromRepo);
+                if (isPingable)
+                {
+                    deviceFromRepo.MakeAvailable();
+                    DeviceRepository.Update(deviceFromRepo);
+                }
+                else
+                {
+                    deviceFromRepo.MakeNotAvailable();
+                    DeviceRepository.Update(deviceFromRepo);
                 }
             }
 
             // Zapisz zmiany
             DeviceRepository.SaveToFile();
+        }
+
+        private static bool CheckIsDevicePingable(Device deviceFromRepo)
+        {
+            bool isPingable = false;
+            using (var ping = new Ping())
+            {
+                try
+                {
+                    var reply = ping.Send(deviceFromRepo.IpAddress, 1000);
+                    isPingable = reply?.Status == IPStatus.Success;
+                }
+                catch
+                {
+                    isPingable = false;
+                }
+            }
+
+            return isPingable;
         }
 
         private void ShowTrayWindow()

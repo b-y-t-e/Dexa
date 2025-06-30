@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace Dexa;
@@ -45,32 +46,35 @@ public static class WindowInfoUtils
     /// </summary>
     public static void SetWindowInfo(IntPtr hwnd, WindowInfo info)
     {
-        // Ensure window is within screen boundaries
-        var screens = Screen.AllScreens;
-        var virtualScreenBounds = new Rectangle(
-            SystemInformation.VirtualScreen.Left,
-            SystemInformation.VirtualScreen.Top,
-            SystemInformation.VirtualScreen.Width,
-            SystemInformation.VirtualScreen.Height);
+        // 0. Parametry do korekty
+        var screen = Screen.FromRectangle(info.Bounds);
+        var mon = screen.Bounds; // pełny wymiar monitora
+        int captionHeight = SystemInformation.CaptionHeight; // wysokość belki tytułu
 
-        if (!virtualScreenBounds.Contains(info.Bounds))
-        {
-            info.Bounds = new Rectangle(
-                Math.Max(virtualScreenBounds.Left, Math.Min(virtualScreenBounds.Right - info.Bounds.Width, info.Bounds.X)),
-                Math.Max(virtualScreenBounds.Top, Math.Min(virtualScreenBounds.Bottom - info.Bounds.Height, info.Bounds.Y)),
-                info.Bounds.Width,
-                info.Bounds.Height);
-        }
+        // 1. Skoryguj rozmiar, jeśli okno jest większe od monitora
+        int width = Math.Min(info.Bounds.Width, mon.Width);
+        int height = Math.Min(info.Bounds.Height, mon.Height);
 
+        // 2. Skoryguj pozycję X (całe okno na szerokość)
+        int x = Math.Max(mon.Left, Math.Min(mon.Right - width, info.Bounds.X));
 
-        // 1. Jeśli trzeba: przywróć do normalnego stanu, żeby móc zmienić pozycję/rozmiar
+        // 3. Skoryguj pozycję Y tak, żeby belka tytułu była widoczna
+        //    — nie wyżej niż mon.Top, nie niżej niż mon.Bottom - captionHeight
+        int maxY = mon.Bottom - captionHeight;
+        int y = Math.Max(mon.Top, Math.Min(maxY, info.Bounds.Y));
+
+        // 4. Zaktualizuj prostokąt
+        info.Bounds = new Rectangle(x, y, width, height);
+
+        // ———————— poniżej bez zmian z oryginału ————————
+
+        // Jeśli stan != Normal, przywróć go najpierw przez SetWindowPlacement
         if (info.State != FormWindowState.Normal)
         {
-            // Ustawiamy stan przez SetWindowPlacement
             var placement = new NativeMethods.WINDOWPLACEMENT
             {
                 length = Marshal.SizeOf<NativeMethods.WINDOWPLACEMENT>(),
-                showCmd = info.State == FormWindowState.Maximized
+                showCmd = (info.State == FormWindowState.Maximized)
                     ? NativeMethods.ShowCmd.Maximized
                     : NativeMethods.ShowCmd.Minimized,
                 rcNormalPosition = new NativeMethods.RECT
@@ -81,14 +85,12 @@ public static class WindowInfoUtils
                     Bottom = info.Bounds.Bottom
                 }
             };
-
             if (!NativeMethods.SetWindowPlacement(hwnd, ref placement))
-                throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
-
-            return; // po ustawieniu stanu nie musimy nic więcej robić
+                throw new Win32Exception(Marshal.GetLastWin32Error());
+            return;
         }
 
-        // 2. Jeśli stan NORMAL, to przesuwamy/skalujemy:
+        // Gdy Normal — przesuń/zmień rozmiar
         if (!NativeMethods.MoveWindow(
                 hwnd,
                 info.Bounds.Left,
@@ -97,7 +99,7 @@ public static class WindowInfoUtils
                 info.Bounds.Height,
                 true))
         {
-            throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error());
+            throw new Win32Exception(Marshal.GetLastWin32Error());
         }
     }
 }

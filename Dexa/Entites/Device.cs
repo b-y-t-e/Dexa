@@ -6,7 +6,17 @@ namespace Else.PhoneMirror.ViewModels;
 
 public class Device : INotifyPropertyChanged
 {
+    private bool _IsAvailable;
+
+    public bool IsAvailable
+    {
+        get => _IsAvailable;
+        set => SetProperty(ref _IsAvailable, value);
+    }
+
+
     private string _friendlyName;
+
     public string FriendlyName
     {
         get => _friendlyName;
@@ -14,6 +24,7 @@ public class Device : INotifyPropertyChanged
     }
 
     private string _name;
+
     public string Name
     {
         get => _name;
@@ -21,6 +32,7 @@ public class Device : INotifyPropertyChanged
     }
 
     private string _hardwareName;
+
     public string HardwareName
     {
         get => _hardwareName;
@@ -28,6 +40,7 @@ public class Device : INotifyPropertyChanged
     }
 
     private string? _ipAddress;
+
     public string? IpAddress
     {
         get => _ipAddress;
@@ -35,6 +48,7 @@ public class Device : INotifyPropertyChanged
     }
 
     private bool _isRemoteConnection;
+
     public bool IsRemoteConnection
     {
         get => _isRemoteConnection;
@@ -42,6 +56,7 @@ public class Device : INotifyPropertyChanged
     }
 
     private bool _isEmulator;
+
     public bool IsEmulator
     {
         get => _isEmulator;
@@ -49,6 +64,7 @@ public class Device : INotifyPropertyChanged
     }
 
     private bool _isNetworkVisible;
+
     public bool IsNetworkVisible
     {
         get => _isNetworkVisible;
@@ -56,6 +72,7 @@ public class Device : INotifyPropertyChanged
     }
 
     private bool _canBeRemoteConnected;
+
     public bool CanBeRemoteConnected
     {
         get => _canBeRemoteConnected;
@@ -66,6 +83,7 @@ public class Device : INotifyPropertyChanged
     public DeviceMedia? DeviceMedia { get; set; }
 
     private bool _isRunning;
+
     public bool IsRunning
     {
         get => _isRunning;
@@ -91,30 +109,24 @@ public class Device : INotifyPropertyChanged
         return true;
     }
 
-    public static Device Create(
-        string name,
-        string hardwareName,
-        bool isEnabled,
-        string? ipAddress,
-        bool isRemoteConnection,
-        bool isEmulator, bool isNetworkVisible, string friendlyName,
-        bool canBeRemoteConnected)
+    public static Device Create(AdbDevice device)
     {
-        return new Device
+        return new Device()
         {
-            IsRunning = isEnabled,
-            Name = name,
-            HardwareName = hardwareName,
-            FriendlyName = friendlyName,
-            IpAddress = ipAddress,
-            IsRemoteConnection = isRemoteConnection,
-            CanBeRemoteConnected = canBeRemoteConnected,
-            IsEmulator = isEmulator,
-            IsNetworkVisible = isNetworkVisible
+            Name = device.Name,
+            HardwareName = device.HardwareName,
+            IsAvailable = true,
+            IsRunning = !device.IsEmulator,
+            IsEmulator = device.IsEmulator,
+            IsNetworkVisible = device.IsNetworkVisible,
+            IsRemoteConnection = device.IsRemoteConnection,
+            CanBeRemoteConnected = device.CanBeRemoteConnected,
+            FriendlyName = device.FriendlyName,
+            IpAddress = device.IpAddress
         };
     }
 
-    public Device Update(Device updatedDevice)
+    public Device Update(AdbDevice updatedDevice)
     {
         if (updatedDevice == null)
             throw new ArgumentNullException(nameof(updatedDevice));
@@ -122,13 +134,19 @@ public class Device : INotifyPropertyChanged
         if (updatedDevice.Name != Name)
             throw new ArgumentException("Device name cannot be changed");
 
-        FriendlyName = updatedDevice.FriendlyName;
-        IpAddress = updatedDevice.IpAddress;
+        if (!string.IsNullOrEmpty(updatedDevice.HardwareName))
+            HardwareName = updatedDevice.HardwareName;
+
+        if (!string.IsNullOrEmpty(updatedDevice.FriendlyName))
+            FriendlyName = updatedDevice.FriendlyName;
+
+        if (!string.IsNullOrEmpty(updatedDevice.IpAddress))
+            IpAddress = updatedDevice.IpAddress;
+
         IsRemoteConnection = updatedDevice.IsRemoteConnection;
         CanBeRemoteConnected = updatedDevice.CanBeRemoteConnected;
         IsEmulator = updatedDevice.IsEmulator;
         IsNetworkVisible = updatedDevice.IsNetworkVisible;
-        HardwareName = updatedDevice.HardwareName;
 
         return this;
     }
@@ -150,5 +168,15 @@ public class Device : INotifyPropertyChanged
     public void ResetMedia()
     {
         this.DeviceMedia = new DeviceMedia();
+    }
+
+    public void MakeAvailable()
+    {
+        this.IsAvailable = true;
+    }
+
+    public void MakeNotAvailable()
+    {
+        this.IsAvailable = false;
     }
 }

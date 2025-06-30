@@ -21,10 +21,10 @@ public static class ScrCpy
     private static readonly IMemoryCache _deviceInfoCache = new MemoryCache(new MemoryCacheOptions());
     private static readonly TimeSpan _deviceInfoCacheDuration = TimeSpan.FromMinutes(5);
 
-    public static List<Device> GetAllDevices()
+    public static List<AdbDevice> GetAllDevices()
     {
         if (_deviceCache.TryGetValue("", out var cachedDevices))
-            return cachedDevices as List<Device>;
+            return cachedDevices as List<AdbDevice>;
 
         var devices = RunAdb($"devices")
             .Split(new[] { '\n', '\r' })
@@ -38,10 +38,10 @@ public static class ScrCpy
                 var ip = GetIp(deviceName);
                 var isEmulator = deviceName.ToLower().Contains("emulator");
                 var isWifi = IpHelper.IsIpAddress(deviceName);
-                return Device.Create(
+                return AdbDevice.Create(
                     deviceName,
                     hardwareName: deviceName,
-                    isEnabled: !isEmulator,
+                    // isEnabled: !isEmulator,
                     ipAddress: ip,
                     isRemoteConnection: IpHelper.IsIpAddress(deviceName),
                     isEmulator: isEmulator,
@@ -102,7 +102,7 @@ public static class ScrCpy
                 friendlyName += name;
             }*/
 
-            if (isWifi)
+            if (isWifi && !String.IsNullOrEmpty(friendlyName))
                 friendlyName += " ⫽ WiFi";
 
             return friendlyName;
@@ -211,8 +211,8 @@ public static class ScrCpy
             args += $" --fullscreen";
 
         if (HardwareDevice.IsRemoteConnection)
-            args += $" -m 960" +
-                    $" -b 4M" +
+            args += $" -m 720" +
+                    $" -b 2M" +
                     $" --max-fps=30";
         else if (isGameMode)
             args += $" -m 1024" +

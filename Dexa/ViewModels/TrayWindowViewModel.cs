@@ -109,6 +109,11 @@ namespace Dexa.ViewModels
         {
             if (device != null)
             {
+                if (device.IsRemoteConnection)
+                {
+                    ScrCpy.ConnectWirelessTo(device.Name, device.IpAddress);
+                }
+
                 ScrCpyRunners.TurnOn(device);
                 System.Windows.Application.Current.Windows[0].Hide(); // Close the tray window
             }

@@ -171,6 +171,9 @@ public class ScrCpyRunner : IDisposable
     {
         try
         {
+            var maxRetries = 5;
+            var retryCount = 0;
+
             while (IsRunning)
             {
                 if (Device?.IsRunning != true)
@@ -182,7 +185,20 @@ public class ScrCpyRunner : IDisposable
                 try
                 {
                     CleanupPreviousProcess();
-                    StartNewScrcpyProcess();
+                    if (!StartNewScrcpyProcess())
+                    {
+                        retryCount++;
+                        if (maxRetries == retryCount)
+                        {
+                            Stop();
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        retryCount = 0;
+                    }
+
                     ZmieńIkonęProcesu();
                     AudioResume();
                     WaitForProcessExit(() =>
@@ -203,6 +219,7 @@ public class ScrCpyRunner : IDisposable
         }
         finally
         {
+            IsRunning = false;
             DisposeProcess();
         }
     }
@@ -212,12 +229,17 @@ public class ScrCpyRunner : IDisposable
         if (_scrCpyProcess != null &&
             _scrCpyProcess.HasExited == true)
         {
-            Device.IsRunning = false;
-            DeviceRepository.UpdateRunData(Device);
+            Stop();
             return true;
         }
 
         return false;
+    }
+
+    private void Stop()
+    {
+        Device.IsRunning = false;
+        DeviceRepository.UpdateRunData(Device);
     }
 
     private void ZmieńIkonęProcesu()
@@ -236,7 +258,7 @@ public class ScrCpyRunner : IDisposable
             DisposeProcess();
     }
 
-    private void StartNewScrcpyProcess()
+    private bool StartNewScrcpyProcess()
     {
         LogMessage("Uruchamianie procesu scrcpy");
         CreateScrCpyIcon();
@@ -252,10 +274,12 @@ public class ScrCpyRunner : IDisposable
             ActivateWindow();
             ConfigureWindow();
             ChangeScrCpyWindowName($"Dexa ⫽ {Device.FriendlyName}");
+            return true;
         }
         else
         {
             DisposeProcess();
+            return false;
         }
     }
 
@@ -367,6 +391,16 @@ public class ScrCpyRunner : IDisposable
     {
         if (_isFullscreen)
             return;
+
+        if (this.Device != null &&
+            this.Device.DeviceWindow == null)
+        {
+            var deviceWithBounds = DeviceRepository
+                .GetDevices()
+                .FirstOrDefault(x => x.DeviceWindow?.HasBounds() == true);
+
+            this.Device.DeviceWindow = deviceWithBounds?.DeviceWindow;
+        }
 
         if (this.Device?.DeviceWindow != null)
             WindowInfoUtils.SetWindowInfo(_scrCpyHwnd, new WindowInfo()
@@ -580,14 +614,10 @@ public class ScrCpyRunner : IDisposable
 
     public void Dispose()
     {
-        StopRunning();
+        Stop();
         UnregisterEvents();
     }
 
-    private void StopRunning()
-    {
-        IsRunning = false;
-    }
 
     private void UnregisterEvents()
     {

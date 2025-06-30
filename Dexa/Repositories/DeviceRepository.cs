@@ -44,16 +44,19 @@ namespace Else.PhoneMirror.Repositories
             }
         }
 
-        public static void UpdateHardwareData(Device device)
+        public static void Update(Device device)
         {
             var existingDevice = _devices.FirstOrDefault(d => d.Name == device.Name);
             if (existingDevice != null)
             {
+                existingDevice.HardwareName = device.HardwareName;
                 existingDevice.IsEmulator = device.IsEmulator;
+                existingDevice.IsAvailable = device.IsAvailable;
                 existingDevice.IsNetworkVisible = device.IsNetworkVisible;
                 existingDevice.IsRemoteConnection = device.IsRemoteConnection;
                 existingDevice.CanBeRemoteConnected = device.CanBeRemoteConnected;
                 existingDevice.IpAddress = device.IpAddress;
+                existingDevice.FriendlyName = device.FriendlyName;
             }
             else
             {

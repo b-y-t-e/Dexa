@@ -22,6 +22,7 @@
     <Window.Resources>
         <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:BooleanToDoubleConverter x:Key="BooleanToDoubleConverter" />
 
         <Style TargetType="Button">
             <Setter Property="Background" Value="#1b2838" />
@@ -87,7 +88,8 @@
                      Visibility="{Binding IsDeviceListEmpty, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Grid HorizontalAlignment="Stretch" Margin="0,0,0,5">
+                        <Grid HorizontalAlignment="Stretch" Margin="0,0,0,5"
+                              Opacity="{Binding IsAvailable, Converter={StaticResource BooleanToDoubleConverter}, ConverterParameter=1.0_0.7}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />

@@ -16,8 +16,8 @@ public static class ScrCpyRunners
     {
         _deviceRunners.RemoveAll(runner =>
         {
-            var shouldRemove = !devices
-                .Any(d => d.IsRunning && d.Name == runner.Device.Name);
+            var shouldRemove = !runner.IsRunning ||
+                               !devices.Any(d => d.IsRunning && d.Name == runner.Device.Name);
             if (shouldRemove)
                 runner.Dispose();
             return shouldRemove;

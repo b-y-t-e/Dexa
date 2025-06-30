@@ -7,4 +7,9 @@ public class DeviceWindow
     public Double Y { get; set; }
     public Double Width { get; set; }
     public Double Height { get; set; }
+
+    public bool HasBounds()
+    {
+        return Width > 0 && Height > 0;
+    }
 }
