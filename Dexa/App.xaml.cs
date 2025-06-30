@@ -117,20 +117,27 @@ namespace Dexa
 
             foreach (var adbDevice in currentDevices)
             {
-                // Sprawdź czy urządzenie jest już w repozytorium
                 var deviceFromRepo = devicesFromRepo
                     .FirstOrDefault(d => d.Name == adbDevice.Name);
 
+                var isPingable = CheckIsDevicePingable(adbDevice.IpAddress);
+
                 if (deviceFromRepo != null)
                 {
-                    deviceFromRepo.MakeAvailable();
+                    if (isPingable)
+                        deviceFromRepo.MakeAvailable();
+                    else
+                        deviceFromRepo.MakeNotAvailable();
                     deviceFromRepo.Update(adbDevice);
                     DeviceRepository.Update(deviceFromRepo);
                 }
                 else
                 {
                     var newDevice = Device.Create(adbDevice);
-                    newDevice.MakeAvailable();
+                    if (isPingable)
+                        newDevice.MakeAvailable();
+                    else
+                        newDevice.MakeNotAvailable();
                     DeviceRepository.Add(newDevice);
                 }
             }
@@ -144,7 +151,7 @@ namespace Dexa
                     continue;
 
                 var isPingable = deviceFromRepo.IsRemoteConnection &&
-                                 CheckIsDevicePingable(deviceFromRepo);
+                                 CheckIsDevicePingable(deviceFromRepo.IpAddress);
                 if (isPingable)
                 {
                     deviceFromRepo.MakeAvailable();
@@ -161,14 +168,14 @@ namespace Dexa
             DeviceRepository.SaveToFile();
         }
 
-        private static bool CheckIsDevicePingable(Device deviceFromRepo)
+        private static bool CheckIsDevicePingable(string ipAddress)
         {
             bool isPingable = false;
             using (var ping = new Ping())
             {
                 try
                 {
-                    var reply = ping.Send(deviceFromRepo.IpAddress, 1000);
+                    var reply = ping.Send(ipAddress, 1000);
                     isPingable = reply?.Status == IPStatus.Success;
                 }
                 catch
