@@ -77,6 +77,7 @@ namespace Else.PhoneMirror.Repositories
                 existingDevice.IsRunning = device.IsRunning;
                 existingDevice.DeviceWindow = device.DeviceWindow;
                 existingDevice.DeviceMedia = device.DeviceMedia;
+                existingDevice.LastUsage = device.LastUsage;
             }
 
             SaveToFile();

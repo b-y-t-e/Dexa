@@ -23,6 +23,7 @@
         <converters:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter" />
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:BooleanToDoubleConverter x:Key="BooleanToDoubleConverter" />
+        <converters:BooleanToColorConverter x:Key="BooleanToColorConverter" />
 
         <Style TargetType="Button">
             <Setter Property="Background" Value="#1b2838" />
@@ -96,26 +97,32 @@
                             </Grid.ColumnDefinitions>
                             <Button Grid.Column="0" HorizontalAlignment="Stretch" Margin="0"
                                     Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.TurnOnDeviceCommand}"
-                                    CommandParameter="{Binding}">
-                                <TextBlock Margin="10, 3" Text="{Binding FriendlyName}" />
+                                    CommandParameter="{Binding}"
+                                    BorderBrush="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}">
+                                <TextBlock Margin="10, 3" Text="{Binding FriendlyName}"
+                                           Foreground="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"/>
                             </Button>
-                            <Button Grid.Column="1" FontFamily="Segoe MDL2 Assets" Margin="5,0,0,0"
+                            <Button Grid.Column="1" FontFamily="Segoe MDL2 Assets" Margin="4,0,0,0"
                                     Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ConnectWirelessCommand}"
                                     CommandParameter="{Binding}" HorizontalAlignment="Stretch"
+                                    BorderBrush="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"
                                     Visibility="{Binding CanBeRemoteConnected, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <TextBlock Margin="10, 3" Text="&#xE703;" />
+                                <TextBlock Margin="10, 3" Text="&#xE703;"
+                                           Foreground="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"/>
                             </Button>
-                            <Button Grid.Column="1" FontFamily="Segoe MDL2 Assets" Margin="5,0,0,0"
+                            <Button Grid.Column="1" FontFamily="Segoe MDL2 Assets" Margin="4,0,0,0"
                                     Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.DisconnectWirelessCommand}"
                                     CommandParameter="{Binding}" HorizontalAlignment="Stretch"
+                                    BorderBrush="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"
                                     Visibility="{Binding IsRemoteConnection, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                <TextBlock Margin="10, 3" Text="&#xE711;" />
+                                <TextBlock Margin="10, 3" Text="&#xE711;"
+                                           Foreground="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"/>
                             </Button>
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <Button Command="{Binding ShowHelpCommand}" Margin="0, 0, 0, 5" >
+            <Button Command="{Binding ShowHelpCommand}" Margin="0, 0, 0, 5">
                 <TextBlock Margin="10, 3" Text="Help" />
             </Button>
             <Button Command="{Binding ExitApplicationCommand}">

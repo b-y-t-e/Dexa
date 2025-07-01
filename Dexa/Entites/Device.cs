@@ -23,6 +23,14 @@ public class Device : INotifyPropertyChanged
         set => SetProperty(ref _friendlyName, value);
     }
 
+    private DateTime _LastUsage;
+
+    public DateTime LastUsage
+    {
+        get => _LastUsage;
+        set => SetProperty(ref _LastUsage, value);
+    }
+
     private string _name;
 
     public string Name
@@ -122,7 +130,8 @@ public class Device : INotifyPropertyChanged
             IsRemoteConnection = device.IsRemoteConnection,
             CanBeRemoteConnected = device.CanBeRemoteConnected,
             FriendlyName = device.FriendlyName,
-            IpAddress = device.IpAddress
+            IpAddress = device.IpAddress,
+            LastUsage = DateTime.UtcNow
         };
     }
 
@@ -148,6 +157,9 @@ public class Device : INotifyPropertyChanged
         IsEmulator = updatedDevice.IsEmulator;
         IsNetworkVisible = updatedDevice.IsNetworkVisible;
 
+        if (LastUsage.Year < 2000)
+            LastUsage = DateTime.UtcNow.AddDays(-1);
+
         return this;
     }
 
@@ -163,6 +175,16 @@ public class Device : INotifyPropertyChanged
     public void Enable()
     {
         this.IsRunning = true;
+    }
+
+    public void Disable()
+    {
+        this.IsRunning = false;
+    }
+
+    public void InformRunning()
+    {
+        this.LastUsage = DateTime.UtcNow;
     }
 
     public void ResetMedia()

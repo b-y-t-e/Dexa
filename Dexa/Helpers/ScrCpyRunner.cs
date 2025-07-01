@@ -14,6 +14,7 @@ public class ScrCpyRunner : IDisposable
     private bool _isGameMode;
     private bool _isRecording;
     private string? _recordFile;
+    private Stopwatch? _stopwatch;
 
     public bool IsRunning { get; private set; }
     public Device Device { get; }
@@ -205,6 +206,7 @@ public class ScrCpyRunner : IDisposable
                     {
                         CheckOrientation();
                         UpdateWindowInfo();
+                        NotifyDeviceStatus();
                     });
 
                     if (CheckIfScrCpyIsClosed())
@@ -224,6 +226,17 @@ public class ScrCpyRunner : IDisposable
         }
     }
 
+    private void NotifyDeviceStatus()
+    {
+        if (_stopwatch == null ||
+            _stopwatch.Elapsed > TimeSpan.FromSeconds(30))
+        {
+            Device.InformRunning();
+            DeviceRepository.UpdateRunData(Device);
+            _stopwatch = Stopwatch.StartNew();
+        }
+    }
+
     private bool CheckIfScrCpyIsClosed()
     {
         if (_scrCpyProcess != null &&
@@ -238,7 +251,7 @@ public class ScrCpyRunner : IDisposable
 
     private void Stop()
     {
-        Device.IsRunning = false;
+        Device.Disable();
         DeviceRepository.UpdateRunData(Device);
     }
 
@@ -397,6 +410,7 @@ public class ScrCpyRunner : IDisposable
         {
             var deviceWithBounds = DeviceRepository
                 .GetDevices()
+                .OrderByDescending(x => x.LastUsage)
                 .FirstOrDefault(x => x.DeviceWindow?.HasBounds() == true);
 
             this.Device.DeviceWindow = deviceWithBounds?.DeviceWindow;
