@@ -12,11 +12,35 @@ using Else.PhoneMirror.Repositories;
 using Else.PhoneMirror.ViewModels;
 using Size = System.Windows.Size;
 using System.Net.NetworkInformation;
+using Velopack;
+using MessageBox = System.Windows.MessageBox;
 
 namespace Dexa
 {
     public partial class App : System.Windows.Application
     {
+        //public static MemoryLogger Log { get; private set; } = new();
+
+        [STAThread]
+        private static void Main(string[] args)
+        {
+            try {
+                // It's important to Run() the VelopackApp as early as possible in app startup.
+                VelopackApp.Build()
+                    .OnFirstRun((v) => { /* Your first run code here */ })
+                    //.SetLogger(Log)
+                    .Run();
+
+                // We can now launch the WPF application as normal.
+                var app = new App();
+                app.InitializeComponent();
+                app.Run();
+
+            } catch (Exception ex) {
+                MessageBox.Show("Unhandled exception: " + ex.ToString());
+            }
+        }
+
         private const string AppName = "Dexa";
         private Mutex _mutex;
 
@@ -24,7 +48,7 @@ namespace Dexa
         private TaskbarIcon? _trayIcon;
         private bool _isAppClosed;
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             _mutex = new Mutex(true, AppName, out var createdNew);
 
@@ -65,6 +89,31 @@ namespace Dexa
 
             KeyboardInterceptorWinForms.InitializeHook();
             ThreadPool.QueueUserWorkItem(DeviceWatcherThread);
+             UpdateMyApp();
+        }
+
+
+        private static void UpdateMyApp()
+        {
+            try
+            {
+                var mgr = new UpdateManager("https://greysource.eu/dexa");
+
+                // check for new version
+                var newVersion = mgr.CheckForUpdates();
+                if (newVersion == null)
+                    return; // no update available
+
+                // download new version
+                mgr.DownloadUpdates(newVersion);
+
+                // install new version and restart app
+                mgr.ApplyUpdatesAndRestart(newVersion);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
         private void DeviceWatcherThread(object? _)
