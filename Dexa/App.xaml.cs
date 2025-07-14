@@ -97,7 +97,7 @@ namespace Dexa
         {
             try
             {
-                var mgr = new UpdateManager("https://greysource.eu/dexa");
+                var mgr = new UpdateManager("https://else.net.pl/dexa/");
 
                 // check for new version
                 var newVersion = mgr.CheckForUpdates();

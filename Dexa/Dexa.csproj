@@ -9,9 +9,10 @@
         <UseWindowsForms>true</UseWindowsForms>
         <ApplicationIcon>Icons\Dexa.ico</ApplicationIcon>
         <StartupObject>Dexa.App</StartupObject>
-        <Authors>Greysource</Authors>
-        <Copyright>Greysource</Copyright>
-        <Company>Greysource</Company>
+        <AssemblyName>Else.Dexa</AssemblyName>
+        <Authors>Else</Authors>
+        <Copyright>Else</Copyright>
+        <Company>Else</Company>
     </PropertyGroup>
 
     <ItemGroup>

@@ -1,0 +1,13 @@
+open ***REMOVED*** 
+***REMOVED***
+***REMOVED***
+quote pasv 
+cd dexa 
+binary 
+put Releases\Else.Dexa-win-Setup.exe 
+put Releases\Else.Dexa-1.0.0-full.nupkg 
+put Releases\Else.Dexa-win-Portable.zip 
+put Releases\RELEASES 
+put Releases\releases.win.json 
+put Releases\assets.win.json 
+bye 

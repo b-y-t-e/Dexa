@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vpk:*)",
+      "Bash(publish.bat)",
+      "Bash(\"C:\\Work\\Dexa-rework\\publish.bat\")",
+      "Bash(dotnet publish:*)",
+      "Bash(\"C:\\Work\\Dexa-rework\\deploy.bat\")"
+    ],
+    "deny": []
+  }
+}
