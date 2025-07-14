@@ -19,7 +19,7 @@ mkdir Releases
 
 REM Generate Velopack package (using vpk instead of Squirrel)
 echo Generating Velopack package...
-vpk pack --packId Else.Dexa --packVersion 1.0.0 --packDir .\publish --mainExe Else.Dexa.exe
+vpk pack --packId Else.Dexa --packVersion 1.0.1 --packDir .\publish --mainExe Else.Dexa.exe
 if %errorlevel% neq 0 (
     echo Package generation failed!
     pause
@@ -41,7 +41,7 @@ echo quote pasv >> ftp_script.txt
 echo cd dexa >> ftp_script.txt
 echo binary >> ftp_script.txt
 echo put Releases\Else.Dexa-win-Setup.exe >> ftp_script.txt
-echo put Releases\Else.Dexa-1.0.0-full.nupkg >> ftp_script.txt
+echo put Releases\Else.Dexa-1.0.1-full.nupkg >> ftp_script.txt
 echo put Releases\Else.Dexa-win-Portable.zip >> ftp_script.txt
 echo put Releases\RELEASES >> ftp_script.txt
 echo put Releases\releases.win.json >> ftp_script.txt
@@ -52,7 +52,7 @@ REM Execute FTP upload
 ftp -s:ftp_script.txt
 
 REM Clean up FTP script
-REM del ftp_script.txt
+del ftp_script.txt
 
 if %errorlevel% equ 0 (
     echo Files uploaded successfully to FTP server!
