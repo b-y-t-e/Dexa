@@ -103,7 +103,9 @@ public class ScrCpyRunner : IDisposable
     {
         if (_isRecording)
         {
-            DisposeProcess();
+            this._recordFile = null;
+            this._isRecording = false;
+            DisposeProcess(stopRecording: false);
         }
         else
         {
@@ -124,7 +126,7 @@ public class ScrCpyRunner : IDisposable
 
                 this._recordFile = saveFileDialog.FileName;
                 this._isRecording = true;
-                DisposeProcess();
+                DisposeProcess(stopRecording: false);
             });
         }
     }
@@ -532,13 +534,14 @@ public class ScrCpyRunner : IDisposable
         }
     }
 
-    private void DisposeProcess()
+    private void DisposeProcess(bool stopRecording = true)
     {
         var (scrCpyHwnd, scrCpyProcess) = RemoveReferencesToProcess();
-        StopRecording();
+        if (stopRecording)
+            StopRecording();
         AudioPause(scrCpyProcess);
         UnregisterWindowFromKeyboardEvents(scrCpyHwnd);
-        CloseScrcpyProcess(scrCpyProcess);
+        CloseScrcpyProcess(scrCpyProcess, stopRecording);
     }
 
     private (IntPtr scrCpyHwnd, Process? scrCpyProcess) RemoveReferencesToProcess()
@@ -584,7 +587,7 @@ public class ScrCpyRunner : IDisposable
         }
     }
 
-    private void CloseScrcpyProcess(Process? _scrCpyProcess)
+    private void CloseScrcpyProcess(Process? _scrCpyProcess, Boolean waitForExit = true)
     {
         if (_scrCpyProcess == null)
             return;
@@ -594,7 +597,10 @@ public class ScrCpyRunner : IDisposable
         try
         {
             CloseMainWindow(_scrCpyProcess);
-            EnsureProcessTerminated(_scrCpyProcess);
+            if (waitForExit)
+                EnsureProcessTerminated(_scrCpyProcess);
+            else
+                WaitProcessTerminated(_scrCpyProcess);
         }
         catch (Exception ex)
         {
@@ -618,6 +624,13 @@ public class ScrCpyRunner : IDisposable
         {
             _scrCpyProcess.Kill(true);
             _scrCpyProcess.WaitForExit2(200);
+        }
+    }
+    private void WaitProcessTerminated(Process _scrCpyProcess)
+    {
+        if (!_scrCpyProcess.HasExited)
+        {
+            _scrCpyProcess.WaitForExit2(99999);
         }
     }
 
