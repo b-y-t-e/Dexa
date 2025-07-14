@@ -1,6 +1,10 @@
 @echo off
 echo Building and deploying Dexa application...
 
+REM Read version from version.txt
+set /p VERSION=<version.txt
+echo Using version: %VERSION%
+
 REM Clean previous builds
 if exist "publish" rmdir /s /q "publish"
 if exist "Releases" rmdir /s /q "Releases"
@@ -19,7 +23,7 @@ mkdir Releases
 
 REM Generate Velopack package (using vpk instead of Squirrel)
 echo Generating Velopack package...
-vpk pack --packId Else.Dexa --packVersion 1.0.1 --packDir .\publish --mainExe Else.Dexa.exe
+vpk pack --packId Else.Dexa --packVersion %VERSION% --packDir .\publish --mainExe Else.Dexa.exe
 if %errorlevel% neq 0 (
     echo Package generation failed!
     pause
@@ -41,7 +45,7 @@ echo quote pasv >> ftp_script.txt
 echo cd dexa >> ftp_script.txt
 echo binary >> ftp_script.txt
 echo put Releases\Else.Dexa-win-Setup.exe >> ftp_script.txt
-echo put Releases\Else.Dexa-1.0.1-full.nupkg >> ftp_script.txt
+echo put Releases\Else.Dexa-%VERSION%-full.nupkg >> ftp_script.txt
 echo put Releases\Else.Dexa-win-Portable.zip >> ftp_script.txt
 echo put Releases\RELEASES >> ftp_script.txt
 echo put Releases\releases.win.json >> ftp_script.txt
