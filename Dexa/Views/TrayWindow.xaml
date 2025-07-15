@@ -122,9 +122,6 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <Button Command="{Binding ShowHelpCommand}" Margin="0, 0, 0, 5">
-                <TextBlock Margin="10, 3" Text="Help" />
-            </Button>
             <Button Command="{Binding ExitApplicationCommand}">
                 <TextBlock Margin="10, 3" Text="Exit" />
             </Button>

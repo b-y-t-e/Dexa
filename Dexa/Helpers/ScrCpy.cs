@@ -198,7 +198,7 @@ public static class ScrCpy
             return null;
 
         var args = $" -s {HardwareDevice.Name}" +
-                   $" --turn-screen-off" +
+                   // $" --turn-screen-off" +
                    $" --stay-awake" +
                    $" --gamepad=uhid" +
                    $" --keyboard=uhid" +

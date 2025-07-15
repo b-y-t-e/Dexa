@@ -47,7 +47,7 @@ namespace Dexa.ViewModels
             IsDeviceListEmpty = _devices.Count == 0;
 
             RefreshDevicesCommand = new RelayCommand(RefreshDevices);
-            ShowHelpCommand = new RelayCommand(ShowHelp);
+            // ShowHelpCommand = new RelayCommand(ShowHelp);
             ExitApplicationCommand = new RelayCommand(ExitApplication);
             TurnOnDeviceCommand = new RelayCommand<Device>(TurnOnDevice);
             ConnectWirelessCommand = new RelayCommand<Device>(ConnectWireless);
@@ -85,16 +85,16 @@ namespace Dexa.ViewModels
 
         public RelayCommand RefreshDevicesCommand { get; private set; }
 
-        public RelayCommand ShowHelpCommand { get; private set; }
+        // public RelayCommand ShowHelpCommand { get; private set; }
 
-        private void ShowHelp()
-        {
-            var helpWindow = new HelpWindow
-            {
-                DataContext = new HelpWindowViewModel()
-            };
-            helpWindow.Show();
-        }
+        // private void ShowHelp()
+        // {
+        //     var helpWindow = new HelpWindow
+        //     {
+        //         DataContext = new HelpWindowViewModel()
+        //     };
+        //     helpWindow.Show();
+        // }
 
         public RelayCommand ExitApplicationCommand { get; private set; }
 
