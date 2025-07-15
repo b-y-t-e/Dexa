@@ -9,7 +9,11 @@ namespace Else.PhoneMirror.Repositories
 {
     public static class DeviceRepository
     {
-        private static readonly string DevicesFilePath = "devices.json";
+        private static readonly string DevicesFilePath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "Dexa",
+            "devices.json");
+
         private static List<Device> _devices;
 
         static DeviceRepository()
