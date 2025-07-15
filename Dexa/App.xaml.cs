@@ -24,10 +24,14 @@ namespace Dexa
         [STAThread]
         private static void Main(string[] args)
         {
-            try {
+            try
+            {
                 // It's important to Run() the VelopackApp as early as possible in app startup.
                 VelopackApp.Build()
-                    .OnFirstRun((v) => { /* Your first run code here */ })
+                    .OnFirstRun((v) =>
+                    {
+                        /* Your first run code here */
+                    })
                     //.SetLogger(Log)
                     .Run();
 
@@ -35,8 +39,9 @@ namespace Dexa
                 var app = new App();
                 app.InitializeComponent();
                 app.Run();
-
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 MessageBox.Show("Unhandled exception: " + ex.ToString());
             }
         }
@@ -89,7 +94,7 @@ namespace Dexa
 
             KeyboardInterceptorWinForms.InitializeHook();
             ThreadPool.QueueUserWorkItem(DeviceWatcherThread);
-             UpdateMyApp();
+            UpdateMyApp();
         }
 
 
@@ -280,7 +285,14 @@ namespace Dexa
             _isAppClosed = true;
             _trayIcon?.Dispose();
             ScrCpyRunners.TurnOff();
-            _mutex?.ReleaseMutex();
+            try
+            {
+                _mutex?.ReleaseMutex();
+            }
+            catch
+            {
+            }
+
             base.OnExit(e);
         }
     }
