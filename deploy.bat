@@ -3,7 +3,26 @@ echo Building and deploying Dexa application...
 
 REM Read version from version.txt
 set /p VERSION=<version.txt
-echo Using version: %VERSION%
+echo Current version: %VERSION%
+
+REM Parse version parts (assuming format X.Y.Z)
+for /f "tokens=1,2,3 delims=." %%a in ("%VERSION%") do (
+    set MAJOR=%%a
+    set MINOR=%%b
+    set PATCH=%%c
+)
+
+REM Increment patch version
+set /a PATCH+=1
+
+REM Create new version string
+set NEW_VERSION=%MAJOR%.%MINOR%.%PATCH%
+
+REM Update version.txt with new version
+echo %NEW_VERSION% > version.txt
+
+echo Updated version to: %NEW_VERSION%
+set VERSION=%NEW_VERSION%
 
 REM Clean previous builds
 if exist "publish" rmdir /s /q "publish"
