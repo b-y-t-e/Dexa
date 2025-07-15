@@ -24,6 +24,7 @@
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <converters:BooleanToDoubleConverter x:Key="BooleanToDoubleConverter" />
         <converters:BooleanToColorConverter x:Key="BooleanToColorConverter" />
+        <converters:BooleanToStringConverter x:Key="BooleanToStringConverter" />
 
         <Style TargetType="Button">
             <Setter Property="Background" Value="#1b2838" />
@@ -122,6 +123,31 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
+
+            <!-- Toggle buttons for keyboard and screen settings -->
+            <Grid Margin="0, 0, 0, 5">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Command="{Binding ToggleKeyboardCommand}" Margin="0, 0, 2, 0"
+                        Opacity="{Binding IsKeyboardEnabled, Converter={StaticResource BooleanToDoubleConverter}, ConverterParameter=1.0_0.7}"
+                        BorderBrush="{Binding IsKeyboardEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}">
+                    <TextBlock Margin="10, 3" FontSize="11"
+                               Text="{Binding IsKeyboardEnabled, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=KEYBOARD__ON_KEYBOARD__OFF}"
+                               Foreground="{Binding IsKeyboardEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}"/>
+                </Button>
+
+                <Button Grid.Column="1" Command="{Binding ToggleScreenCommand}" Margin="2, 0, 0, 0"
+                        Opacity="{Binding IsScreenOffEnabled, Converter={StaticResource BooleanToDoubleConverter}, ConverterParameter=1.0_0.7}"
+                        BorderBrush="{Binding IsScreenOffEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}">
+                    <TextBlock Margin="10, 3" FontSize="11"
+                               Text="{Binding IsScreenOffEnabled, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=SCREEN__ON_SCREEN__OFF}"
+                               Foreground="{Binding IsScreenOffEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}"/>
+                </Button>
+            </Grid>
+
             <Button Command="{Binding ExitApplicationCommand}">
                 <TextBlock Margin="10, 3" Text="Exit" />
             </Button>

@@ -7,6 +7,7 @@ using System.Windows;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.Caching.Memory;
+using Dexa.Helpers;
 
 namespace Else.PhoneMirror.ViewModels;
 
@@ -197,15 +198,28 @@ public static class ScrCpy
         if (HardwareDevice == null)
             return null;
 
+        // Get settings from app
+        var settings = AppSettings.Load();
+
         var args = $" -s {HardwareDevice.Name}" +
-                   // $" --turn-screen-off" +
                    $" --stay-awake" +
-                   $" --gamepad=uhid" +
-                   $" --keyboard=uhid" +
                    //$" --window-borderless" +
                    //$" --power-off-on-close" +
                    //$" --kill-adb-on-close" +
                    $" --shortcut-mod=rsuper";
+
+        // Add keyboard/gamepad settings based on toggle
+        if (!settings.IsKeyboardEnabled)
+        {
+            args += $" --gamepad=uhid" +
+                   $" --keyboard=uhid";
+        }
+
+        // Add screen turn-off setting based on toggle
+        if (!settings.IsScreenOffEnabled)
+        {
+            args += $" --turn-screen-off";
+        }
 
         if (isFullscreen)
             args += $" --fullscreen";

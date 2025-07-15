@@ -8,8 +8,8 @@ public class BooleanToStringConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        var parameterStr = parameter?.ToString() ?? "";
-        var values = parameterStr.Split('_', ';', ' ');
+        var parameterStr = (parameter?.ToString() ?? "").Replace("__", " ");
+        var values = parameterStr.Split(new[] { '_', ';' }, 2);
 
 
         if (value is bool b && b)

@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using GalaSoft.MvvmLight.Command;
 using Dexa.Views;
+using Dexa.Helpers;
 using Else.PhoneMirror.Repositories;
 using Else.PhoneMirror.ViewModels;
 
@@ -40,8 +41,39 @@ namespace Dexa.ViewModels
             set => SetProperty(ref _isDeviceListEmpty, value);
         }
 
+        private AppSettings _settings;
+
+        private bool _isKeyboardEnabled;
+        public bool IsKeyboardEnabled
+        {
+            get => _isKeyboardEnabled;
+            set
+            {
+                SetProperty(ref _isKeyboardEnabled, value);
+                _settings.IsKeyboardEnabled = value;
+                _settings.Save();
+            }
+        }
+
+        private bool _isScreenOffEnabled;
+        public bool IsScreenOffEnabled
+        {
+            get => _isScreenOffEnabled;
+            set
+            {
+                SetProperty(ref _isScreenOffEnabled, value);
+                _settings.IsScreenOffEnabled = value;
+                _settings.Save();
+            }
+        }
+
         public TrayWindowViewModel()
         {
+            // Load settings
+            _settings = AppSettings.Load();
+            _isKeyboardEnabled = _settings.IsKeyboardEnabled;
+            _isScreenOffEnabled = _settings.IsScreenOffEnabled;
+
             _devices = new ObservableCollection<Device>(DeviceRepository.GetDevices());
             _devices.CollectionChanged += Devices_CollectionChanged;
             IsDeviceListEmpty = _devices.Count == 0;
@@ -52,6 +84,8 @@ namespace Dexa.ViewModels
             TurnOnDeviceCommand = new RelayCommand<Device>(TurnOnDevice);
             ConnectWirelessCommand = new RelayCommand<Device>(ConnectWireless);
             DisconnectWirelessCommand = new RelayCommand<Device>(DisconnectWireless);
+            ToggleKeyboardCommand = new RelayCommand(ToggleKeyboard);
+            ToggleScreenCommand = new RelayCommand(ToggleScreen);
         }
 
         private void Devices_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -84,6 +118,8 @@ namespace Dexa.ViewModels
         }
 
         public RelayCommand RefreshDevicesCommand { get; private set; }
+        public RelayCommand ToggleKeyboardCommand { get; private set; }
+        public RelayCommand ToggleScreenCommand { get; private set; }
 
         // public RelayCommand ShowHelpCommand { get; private set; }
 
@@ -101,6 +137,16 @@ namespace Dexa.ViewModels
         private void ExitApplication()
         {
             System.Windows.Application.Current.Shutdown();
+        }
+
+        private void ToggleKeyboard()
+        {
+            IsKeyboardEnabled = !IsKeyboardEnabled;
+        }
+
+        private void ToggleScreen()
+        {
+            IsScreenOffEnabled = !IsScreenOffEnabled;
         }
 
         public RelayCommand<Device> TurnOnDeviceCommand { get; private set; }
