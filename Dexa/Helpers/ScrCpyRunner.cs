@@ -10,12 +10,26 @@ public class ScrCpyRunner : IDisposable
 {
     private Process? _scrCpyProcess;
     private IntPtr _scrCpyHwnd;
-    private Orientation? _scrCpyLastOrientation;
     private bool _isFullscreen;
     private bool _isGameMode;
     private bool _isRecording;
     private string? _recordFile;
     private Stopwatch? _stopwatch;
+
+    private int _lastSavedWindowX;
+    private int _lastSavedWindowY;
+    private int _lastSavedWindowWidth;
+    private int _lastSavedWindowHeight;
+    private DateTime _lastWindowStableTime = DateTime.MinValue;
+    private static readonly TimeSpan WindowSaveDelay = TimeSpan.FromMilliseconds(800);
+
+    private int _lastWindowWidth;
+    private int _lastWindowHeight;
+    private DateTime _lastWindowSizeChangeTime = DateTime.MinValue;
+    private Orientation? _scrCpyLastOrientation;
+    private readonly bool _isAspectRatioUnlocked;
+    private const double OrientationThresholdRatio = 0.15;
+    private static readonly TimeSpan DebounceDelay = TimeSpan.FromSeconds(1);
 
     public bool IsRunning { get; private set; }
     public Device Device { get; }
@@ -23,6 +37,7 @@ public class ScrCpyRunner : IDisposable
     public ScrCpyRunner(Device device)
     {
         Device = device;
+        _isAspectRatioUnlocked = AppSettings.Load().IsAspectRatioUnlocked;
         LogMessage("Podpięto obsługę zdarzeń klawiatury");
         Start();
     }
@@ -83,7 +98,7 @@ public class ScrCpyRunner : IDisposable
     private void ToggleDeviceOrientation()
     {
         LogMessage("Przełączanie orientacji ekranu");
-        ScrCpy.ToggleScreenOrientation(Device.Name);
+        Task.Run(() => ScrCpy.ToggleScreenOrientation(Device.Name));
     }
 
     private void ToggleFullscreenMode()
@@ -207,8 +222,11 @@ public class ScrCpyRunner : IDisposable
                     AudioResume();
                     WaitForProcessExit(() =>
                     {
-                        CheckOrientation();
-                        UpdateWindowInfo();
+                        var windowInfo = _scrCpyHwnd != IntPtr.Zero
+                            ? WindowInfoUtils.GetWindowInfo(_scrCpyHwnd)
+                            : null;
+                        CheckOrientation(windowInfo);
+                        UpdateWindowInfo(windowInfo);
                         NotifyDeviceStatus();
                     });
 
@@ -302,6 +320,13 @@ public class ScrCpyRunner : IDisposable
     private void StartProcess(ProcessStartInfo startInfo)
     {
         _scrCpyProcess = Process.Start(startInfo);
+        if (_scrCpyProcess == null) return;
+        _scrCpyProcess.ErrorDataReceived += (_, e) =>
+        {
+            if (!string.IsNullOrWhiteSpace(e.Data))
+                LogMessage($"scrcpy stderr: {e.Data}");
+        };
+        _scrCpyProcess.BeginErrorReadLine();
         try
         {
             _scrCpyProcess.PriorityClass = ProcessPriorityClass.AboveNormal;
@@ -324,6 +349,7 @@ public class ScrCpyRunner : IDisposable
             UseShellExecute = false,
             CreateNoWindow = true,
             RedirectStandardInput = true,
+            RedirectStandardError = true,
             Arguments = ScrCpy.BuildScrcpyArguments(
                 Device,
                 _recordFile,
@@ -342,13 +368,16 @@ public class ScrCpyRunner : IDisposable
         var stopwatch = Stopwatch.StartNew();
         const int maxWaitTimeSeconds = 30;
 
-        _scrCpyLastOrientation = null;
+        _scrCpyLastOrientation = ScrCpy.GetDeviceOrientation(Device.Name);
+        _lastWindowWidth = 0;
+        _lastWindowHeight = 0;
+        _lastWindowSizeChangeTime = DateTime.MinValue;
 
         while (_scrCpyHwnd == IntPtr.Zero &&
-               !_scrCpyProcess.HasExited &&
+               _scrCpyProcess?.HasExited == false &&
                stopwatch.Elapsed < TimeSpan.FromSeconds(maxWaitTimeSeconds))
         {
-            _scrCpyHwnd = _scrCpyProcess.MainWindowHandle;
+            _scrCpyHwnd = _scrCpyProcess?.MainWindowHandle ?? IntPtr.Zero;
             Thread.Sleep(5);
         }
     }
@@ -450,52 +479,77 @@ public class ScrCpyRunner : IDisposable
         }
     }
 
-    private void UpdateWindowInfo()
+    private void UpdateWindowInfo(WindowInfo? windowInfo)
     {
-        if (_isFullscreen)
+        if (_isFullscreen || !IsRunning || Device?.IsRunning != true || _scrCpyProcess?.HasExited != false)
             return;
 
-        if (!IsRunning)
+        if (windowInfo?.State != FormWindowState.Normal)
             return;
 
-        if (Device?.IsRunning != true)
-            return;
+        int x = windowInfo.Bounds.X;
+        int y = windowInfo.Bounds.Y;
+        int w = windowInfo.Bounds.Width;
+        int h = windowInfo.Bounds.Height;
 
-        if (_scrCpyProcess?.HasExited != false)
-            return;
+        bool boundsChanged = x != _lastSavedWindowX || y != _lastSavedWindowY ||
+                             w != _lastSavedWindowWidth || h != _lastSavedWindowHeight;
 
-        var newWindowInfo = WindowInfoUtils.GetWindowInfo(_scrCpyHwnd);
-        if (newWindowInfo?.State == FormWindowState.Normal)
+        if (boundsChanged)
         {
+            _lastSavedWindowX = x;
+            _lastSavedWindowY = y;
+            _lastSavedWindowWidth = w;
+            _lastSavedWindowHeight = h;
+            _lastWindowStableTime = DateTime.UtcNow;
+
             if (this.Device.DeviceWindow == null)
                 this.Device.DeviceWindow = new DeviceWindow();
 
-            this.Device.DeviceWindow.X = newWindowInfo.Bounds.X;
-            this.Device.DeviceWindow.Y = newWindowInfo.Bounds.Y;
-            this.Device.DeviceWindow.Width = newWindowInfo.Bounds.Width;
-            this.Device.DeviceWindow.Height = newWindowInfo.Bounds.Height;
-            this.Device.DeviceWindow.WindowState = newWindowInfo.State;
-
-            DeviceRepository.UpdateRunData(this.Device);
+            this.Device.DeviceWindow.X = x;
+            this.Device.DeviceWindow.Y = y;
+            this.Device.DeviceWindow.Width = w;
+            this.Device.DeviceWindow.Height = h;
+            this.Device.DeviceWindow.WindowState = windowInfo.State;
+            return;
         }
+
+        // Zapisz na dysk dopiero gdy okno jest stabilne przez WindowSaveDelay
+        if (_lastWindowStableTime == DateTime.MinValue) return;
+        if (DateTime.UtcNow - _lastWindowStableTime < WindowSaveDelay) return;
+
+        _lastWindowStableTime = DateTime.MinValue;
+        LogMessage($"Zapis pozycji okna: {w}x{h} @ {x},{y}");
+        DeviceRepository.UpdateRunData(this.Device);
     }
 
-    private void CheckOrientation()
+    private void CheckOrientation(WindowInfo? windowInfo)
     {
-        if (!AppSettings.Load().IsAspectRatioUnlocked)
-            return;
-
-        if (_scrCpyHwnd == IntPtr.Zero)
-            return;
-
-        if (_scrCpyProcess?.HasExited != false)
-            return;
+        if (!_isAspectRatioUnlocked) return;
+        if (_scrCpyHwnd == IntPtr.Zero) return;
+        if (_scrCpyProcess?.HasExited != false) return;
 
         try
         {
-            var windowSize = WindowInfoUtils.GetWindowInfo(_scrCpyHwnd);
-            if (windowSize != null)
-                UpdateDeviceOrientation(windowSize);
+            if (windowInfo == null || windowInfo.State != FormWindowState.Normal) return;
+
+            int w = (int)windowInfo.Width;
+            int h = (int)windowInfo.Height;
+
+            if (w != _lastWindowWidth || h != _lastWindowHeight)
+            {
+                _lastWindowWidth = w;
+                _lastWindowHeight = h;
+                _lastWindowSizeChangeTime = DateTime.UtcNow;
+                return;
+            }
+
+            if (_lastWindowSizeChangeTime == DateTime.MinValue) return;
+            if (DateTime.UtcNow - _lastWindowSizeChangeTime < DebounceDelay) return;
+
+            _lastWindowSizeChangeTime = DateTime.MinValue;
+            LogMessage($"Debounce wyzwolony: klasyfikuję orientację {w}x{h}");
+            UpdateDeviceOrientation(w, h);
         }
         catch (Exception ex)
         {
@@ -503,38 +557,31 @@ public class ScrCpyRunner : IDisposable
         }
     }
 
-    private void UpdateDeviceOrientation(WindowInfo windowSize)
+    private void UpdateDeviceOrientation(int windowWidth, int windowHeight)
     {
-        const int minSize = 40;
+        var orientation = ClassifyWindowOrientation(windowWidth, windowHeight);
+        if (orientation == null) return;
+        if (_scrCpyLastOrientation == orientation.Value) return;
 
-        if (windowSize.Width <= minSize || windowSize.Height <= minSize ||
-            windowSize.State == FormWindowState.Minimized)
-            return;
-
-        Orientation currentOrientation = DetermineOrientation(windowSize.Width, windowSize.Height);
-
-        if (_scrCpyLastOrientation == currentOrientation)
-            return;
-
-        SetDeviceOrientation(currentOrientation, executePermissions: true);
-        _scrCpyLastOrientation = currentOrientation;
+        LogMessage($"Zmiana orientacji: {_scrCpyLastOrientation} → {orientation.Value} ({windowWidth}x{windowHeight})");
+        _scrCpyLastOrientation = orientation.Value;
+        SetDeviceOrientation(orientation.Value, executePermissions: true);
     }
 
-    private Orientation DetermineOrientation(double width, double height)
+    private Orientation? ClassifyWindowOrientation(double width, double height)
     {
+        double larger = Math.Max(width, height);
+        double smaller = Math.Min(width, height);
+        if ((larger - smaller) / larger < OrientationThresholdRatio) return null;
         return width > height ? Orientation.Horizontal : Orientation.Vertical;
     }
 
     private void SetDeviceOrientation(Orientation orientation, bool executePermissions)
     {
         if (orientation == Orientation.Horizontal)
-        {
             ScrCpy.SetScreenOrientationHorizontal(Device.Name, executePermissions);
-        }
         else
-        {
             ScrCpy.SetScreenOrientationVertical(Device.Name, executePermissions);
-        }
     }
 
     private void DisposeProcess(bool stopRecording = true)
@@ -552,6 +599,10 @@ public class ScrCpyRunner : IDisposable
         var scrCpyHwnd = _scrCpyHwnd;
         var scrCpyProcess = _scrCpyProcess;
         _scrCpyLastOrientation = null;
+        _lastWindowSizeChangeTime = DateTime.MinValue;
+        _lastWindowStableTime = DateTime.MinValue;
+        _lastWindowWidth = 0;
+        _lastWindowHeight = 0;
         _scrCpyHwnd = IntPtr.Zero;
         _scrCpyProcess = null;
         return (scrCpyHwnd, scrCpyProcess);
@@ -639,7 +690,7 @@ public class ScrCpyRunner : IDisposable
 
     private void LogMessage(string message)
     {
-        Console.WriteLine($"{DateTime.Now.TimeOfDay} - ScrCpyRunner: {message}");
+        FileLogger.Log($"ScrCpyRunner [{Device?.Name}]: {message}");
     }
 
     public void RestartProcess()
