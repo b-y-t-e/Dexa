@@ -191,7 +191,10 @@ public static class ScrCpy
                    $" --shortcut-mod=rsuper";
 
         if (settings.IsAspectRatioUnlocked)
+        {
             args += " --no-window-aspect-ratio-lock";
+            args += " --no-auto-resize";
+        }
 
         if (!settings.IsAudioEnabled)
             args += " --no-audio";
