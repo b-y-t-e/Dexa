@@ -56,29 +56,30 @@ dir Releases
 REM Upload to FTP server
 echo Uploading files to FTP server...
 
-REM Create FTP script
-echo open ***REMOVED*** > ftp_script.txt
-echo ***REMOVED***>> ftp_script.txt
-echo ***REMOVED*** ftp_script.txt
-echo quote pasv >> ftp_script.txt
-echo cd dexa >> ftp_script.txt
-echo binary >> ftp_script.txt
-echo put Releases\Else.Dexa-win-Setup.exe >> ftp_script.txt
-echo put Releases\Else.Dexa-%VERSION%-full.nupkg >> ftp_script.txt
-echo put Releases\Else.Dexa-win-Portable.zip >> ftp_script.txt
-echo put Releases\RELEASES >> ftp_script.txt
-echo put Releases\releases.win.json >> ftp_script.txt
-echo put Releases\assets.win.json >> ftp_script.txt
-echo bye >> ftp_script.txt
+set FTP_BASE=ftp://***REMOVED***/dexa/
+set FTP_USER=***REMOVED***:***REMOVED***
+set UPLOAD_OK=1
 
-REM Execute FTP upload
-ftp -s:ftp_script.txt
+curl -s -T "Releases\Else.Dexa-win-Setup.exe" --user %FTP_USER% "%FTP_BASE%Else.Dexa-win-Setup.exe"
+if %errorlevel% neq 0 set UPLOAD_OK=0
 
-REM Clean up FTP script
-del ftp_script.txt
+curl -s -T "Releases\Else.Dexa-%VERSION%-full.nupkg" --user %FTP_USER% "%FTP_BASE%Else.Dexa-%VERSION%-full.nupkg"
+if %errorlevel% neq 0 set UPLOAD_OK=0
 
-if %errorlevel% equ 0 (
+curl -s -T "Releases\Else.Dexa-win-Portable.zip" --user %FTP_USER% "%FTP_BASE%Else.Dexa-win-Portable.zip"
+if %errorlevel% neq 0 set UPLOAD_OK=0
+
+curl -s -T "Releases\RELEASES" --user %FTP_USER% "%FTP_BASE%RELEASES"
+if %errorlevel% neq 0 set UPLOAD_OK=0
+
+curl -s -T "Releases\releases.win.json" --user %FTP_USER% "%FTP_BASE%releases.win.json"
+if %errorlevel% neq 0 set UPLOAD_OK=0
+
+curl -s -T "Releases\assets.win.json" --user %FTP_USER% "%FTP_BASE%assets.win.json"
+if %errorlevel% neq 0 set UPLOAD_OK=0
+
+if %UPLOAD_OK% equ 1 (
     echo Files uploaded successfully to FTP server!
 ) else (
-    echo FTP upload failed!
+    echo FTP upload failed for one or more files!
 )

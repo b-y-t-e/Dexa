@@ -93,6 +93,7 @@ namespace Else.PhoneMirror.Repositories
             {
                 lock (_devices)
                 {
+                    Directory.CreateDirectory(Path.GetDirectoryName(DevicesFilePath)!);
                     string json = System.Text.Json.JsonSerializer.Serialize(_devices,
                         new System.Text.Json.JsonSerializerOptions
                         {

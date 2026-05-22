@@ -203,6 +203,7 @@ public static class ScrCpy
 
         var args = $" -s {HardwareDevice.Name}" +
                    $" --stay-awake" +
+                   $" --no-window-aspect-ratio-lock" +
                    //$" --window-borderless" +
                    //$" --power-off-on-close" +
                    //$" --kill-adb-on-close" +
@@ -414,7 +415,6 @@ public static class ScrCpy
                     }
                 }
 
-                Console.WriteLine($"{DateTime.Now.TimeOfDay} - adb {arguments} - {st.ElapsedMilliseconds}ms");
                 return sb.ToString();
             }
         }

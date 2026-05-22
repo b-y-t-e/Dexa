@@ -43,16 +43,22 @@
         <None Update="scrcpy\AdbWinUsbApi.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="scrcpy\avcodec-61.dll">
+        <None Update="scrcpy\avcodec-62.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="scrcpy\avformat-61.dll">
+        <None Update="scrcpy\avformat-62.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="scrcpy\avutil-59.dll">
+        <None Update="scrcpy\avutil-60.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="scrcpy\icon.png">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="scrcpy\disconnected.png">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="scrcpy\scrcpy.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="scrcpy\libusb-1.0.dll">
@@ -73,10 +79,10 @@
         <None Update="scrcpy\scrcpy-server">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="scrcpy\SDL2.dll">
+        <None Update="scrcpy\SDL3.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
-        <None Update="scrcpy\swresample-5.dll">
+        <None Update="scrcpy\swresample-6.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Include="Icons\DexaLogo.png">

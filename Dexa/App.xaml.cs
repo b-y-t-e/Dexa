@@ -117,7 +117,7 @@ namespace Dexa
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                Debug.WriteLine($"Update check failed: {ex.Message}");
             }
         }
 
