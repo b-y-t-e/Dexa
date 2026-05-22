@@ -5,50 +5,67 @@ namespace Dexa;
 
 public static class ScrCpyRunners
 {
-    static List<ScrCpyRunner> _deviceRunners = new List<ScrCpyRunner>();
+    // K1: lock for thread-safe access from DeviceWatcherThread and UI thread
+    static private readonly object _lock = new object();
+    static private readonly List<ScrCpyRunner> _deviceRunners = new List<ScrCpyRunner>();
 
     public static int ActiveCount
     {
-        get => _deviceRunners.Count;
+        get { lock (_lock) return _deviceRunners.Count; }
     }
 
     public static void Apply(List<Device> devices)
     {
-        _deviceRunners.RemoveAll(runner =>
+        List<ScrCpyRunner> toDispose;
+        List<Device> toAdd;
+        lock (_lock)
         {
-            var shouldRemove = !runner.IsRunning ||
-                               !devices.Any(d => d.IsRunning && d.Name == runner.Device.Name);
-            if (shouldRemove)
-                runner.Dispose();
-            return shouldRemove;
-        });
+            toDispose = _deviceRunners
+                .Where(runner => !runner.IsRunning || !devices.Any(d => d.IsRunning && d.Name == runner.Device.Name))
+                .ToList();
 
-        foreach (var device in devices)
-        {
-            if (!device.IsRunning)
-                continue;
+            foreach (var r in toDispose)
+                _deviceRunners.Remove(r);
 
-            if (!_deviceRunners.Any(r => r.Device.Name == device.Name))
-                _deviceRunners.Add(new ScrCpyRunner(device));
+            toAdd = devices
+                .Where(d => d.IsRunning && !_deviceRunners.Any(r => r.Device.Name == d.Name))
+                .ToList();
         }
+
+        foreach (var device in toAdd)
+        {
+            var runner = new ScrCpyRunner(device);
+            lock (_lock)
+                _deviceRunners.Add(runner);
+        }
+
+        foreach (var r in toDispose)
+            r.Dispose();
     }
 
     public static void TurnOff()
     {
-        foreach (var deviceRunner in _deviceRunners)
-            deviceRunner.Dispose();
-        _deviceRunners.Clear();
+        List<ScrCpyRunner> runners;
+        lock (_lock)
+        {
+            runners = _deviceRunners.ToList();
+            _deviceRunners.Clear();
+        }
+
+        foreach (var r in runners)
+            r.Dispose();
     }
 
     public static void TurnOn(Device device)
     {
-        var thisDevice = _deviceRunners
-            .FirstOrDefault(r => r.Device.Name == device.Name);
-        if (thisDevice != null)
-            return;
+        lock (_lock)
+        {
+            if (_deviceRunners.Any(r => r.Device.Name == device.Name))
+                return;
 
-        device.Enable();
-        DeviceRepository.UpdateRunData(device);
-        _deviceRunners.Add(new ScrCpyRunner(device));
+            device.Enable();
+            DeviceRepository.UpdateRunData(device);
+            _deviceRunners.Add(new ScrCpyRunner(device));
+        }
     }
 }

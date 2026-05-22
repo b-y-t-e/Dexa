@@ -53,8 +53,8 @@ public static class IconHelper
     static Icon CreateIconFromPng(string pngFilePath)
     {
         using Bitmap bitmap = new Bitmap(pngFilePath);
-        // Upewnij się, że format obrazu obsługuje przezroczystość
-        Bitmap bitmapWithTransparency = new Bitmap(bitmap.Width, bitmap.Height, PixelFormat.Format32bppArgb);
+        // W2: dispose bitmapWithTransparency to release GDI handle
+        using Bitmap bitmapWithTransparency = new Bitmap(bitmap.Width, bitmap.Height, PixelFormat.Format32bppArgb);
 
         using (Graphics g = Graphics.FromImage(bitmapWithTransparency))
         {
@@ -62,13 +62,10 @@ public static class IconHelper
             g.DrawImage(bitmap, 0, 0, bitmap.Width, bitmap.Height);
         }
 
-        // Konwersja Bitmap na Icon
         IntPtr hicon = bitmapWithTransparency.GetHicon();
-        Icon icon = Icon.FromHandle(hicon);
-
-        // Tworzymy kopię ikony, aby zwolnić uchwyt systemowy
+        using Icon icon = Icon.FromHandle(hicon);
         Icon iconCopy = (Icon)icon.Clone();
-        DestroyIcon(hicon); // Zwolnij uchwyt systemowy
+        DestroyIcon(hicon);
 
         return iconCopy;
     }

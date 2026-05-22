@@ -19,23 +19,13 @@ namespace Dexa
 {
     public partial class App : System.Windows.Application
     {
-        //public static MemoryLogger Log { get; private set; } = new();
-
         [STAThread]
         private static void Main(string[] args)
         {
             try
             {
-                // It's important to Run() the VelopackApp as early as possible in app startup.
-                VelopackApp.Build()
-                    .OnFirstRun((v) =>
-                    {
-                        /* Your first run code here */
-                    })
-                    //.SetLogger(Log)
-                    .Run();
+                VelopackApp.Build().Run();
 
-                // We can now launch the WPF application as normal.
                 var app = new App();
                 app.InitializeComponent();
                 app.Run();
@@ -51,9 +41,11 @@ namespace Dexa
 
         private TrayWindow? _trayWindow;
         private TaskbarIcon? _trayIcon;
-        private bool _isAppClosed;
 
-        protected override async void OnStartup(StartupEventArgs e)
+        // K5: volatile so DeviceWatcherThread always sees updated value
+        private volatile bool _isAppClosed;
+
+        protected override void OnStartup(StartupEventArgs e)
         {
             _mutex = new Mutex(true, AppName, out var createdNew);
 
@@ -92,27 +84,22 @@ namespace Dexa
                 _trayIcon.TrayRightMouseDown += (sender, args) => ShowTrayWindow();
             }
 
-            KeyboardInterceptorWinForms.InitializeHook();
             ThreadPool.QueueUserWorkItem(DeviceWatcherThread);
-            UpdateMyApp();
-        }
 
+            // W1: run update check in background, not on UI thread
+            Task.Run(UpdateMyApp);
+        }
 
         private static void UpdateMyApp()
         {
             try
             {
                 var mgr = new UpdateManager("https://else.net.pl/dexa/");
-
-                // check for new version
                 var newVersion = mgr.CheckForUpdates();
                 if (newVersion == null)
-                    return; // no update available
+                    return;
 
-                // download new version
                 mgr.DownloadUpdates(newVersion);
-
-                // install new version and restart app
                 mgr.ApplyUpdatesAndRestart(newVersion);
             }
             catch (Exception ex)
@@ -133,7 +120,6 @@ namespace Dexa
                         return;
 
                     var devices = DeviceRepository.GetDevices();
-
                     ScrCpyRunners.Apply(devices);
                 }
                 catch (Exception ex)
@@ -152,130 +138,98 @@ namespace Dexa
 
         private void UpdateNewDevicesInRepository()
         {
-            var currentDevices = ScrCpy
-                .GetAllDevices()
-                // .Where(x => !x.IsEmulator)
-                .ToList();
-
+            var currentDevices = ScrCpy.GetAllDevices().ToList();
             AddDevicesInRepository(currentDevices);
         }
 
-        /// <summary>
-        /// Aktualizuje repozytorium o nowe urządzenia lub aktualizuje istniejące
-        /// </summary>
-        /// <param name="currentDevices">Lista aktualnie wykrytych urządzeń</param>
         private void AddDevicesInRepository(List<AdbDevice> currentDevices)
         {
-            // Pobierz zapisane urządzenia
             var devicesFromRepo = DeviceRepository.GetDevices();
 
             foreach (var adbDevice in currentDevices)
             {
-                var deviceFromRepo = devicesFromRepo
-                    .FirstOrDefault(d => d.Name == adbDevice.Name);
-
+                var deviceFromRepo = devicesFromRepo.FirstOrDefault(d => d.Name == adbDevice.Name);
                 var isPingable = CheckIsDevicePingable(adbDevice.IpAddress);
 
                 if (deviceFromRepo != null)
                 {
-                    if (isPingable)
-                        deviceFromRepo.MakeAvailable();
-                    else
-                        deviceFromRepo.MakeNotAvailable();
+                    if (isPingable) deviceFromRepo.MakeAvailable();
+                    else deviceFromRepo.MakeNotAvailable();
                     deviceFromRepo.Update(adbDevice);
                     DeviceRepository.Update(deviceFromRepo);
                 }
                 else
                 {
                     var newDevice = Device.Create(adbDevice);
-                    if (isPingable)
-                        newDevice.MakeAvailable();
-                    else
-                        newDevice.MakeNotAvailable();
+                    if (isPingable) newDevice.MakeAvailable();
+                    else newDevice.MakeNotAvailable();
                     DeviceRepository.Add(newDevice);
                 }
             }
 
             foreach (var deviceFromRepo in devicesFromRepo)
             {
-                var currentDevice = currentDevices
-                    .FirstOrDefault(d => d.Name == deviceFromRepo.Name);
-
-                if (currentDevice != null)
+                if (currentDevices.Any(d => d.Name == deviceFromRepo.Name))
                     continue;
 
                 var isPingable = deviceFromRepo.IsRemoteConnection &&
                                  CheckIsDevicePingable(deviceFromRepo.IpAddress);
                 if (isPingable)
-                {
                     deviceFromRepo.MakeAvailable();
-                    DeviceRepository.Update(deviceFromRepo);
-                }
                 else
-                {
                     deviceFromRepo.MakeNotAvailable();
-                    DeviceRepository.Update(deviceFromRepo);
-                }
+
+                DeviceRepository.Update(deviceFromRepo);
             }
 
-            // Zapisz zmiany
             DeviceRepository.SaveToFile();
         }
 
+        // W8: guard against empty/null IP before sending ping
         private static bool CheckIsDevicePingable(string ipAddress)
         {
-            bool isPingable = false;
-            using (var ping = new Ping())
-            {
-                try
-                {
-                    var reply = ping.Send(ipAddress, 1000);
-                    isPingable = reply?.Status == IPStatus.Success;
-                }
-                catch
-                {
-                    isPingable = false;
-                }
-            }
+            if (string.IsNullOrWhiteSpace(ipAddress))
+                return false;
 
-            return isPingable;
+            try
+            {
+                using var ping = new Ping();
+                var reply = ping.Send(ipAddress, 1000);
+                return reply?.Status == IPStatus.Success;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private void ShowTrayWindow()
         {
             if (_trayWindow == null) return;
 
-            // Make the window temporarily invisible to prevent flash
             _trayWindow.Opacity = 0;
             _trayWindow.Show();
-
-            // Force layout update to get ActualWidth and ActualHeight
             _trayWindow.UpdateLayout();
 
-            // Get cursor position using System.Windows.Forms.Cursor.Position
             System.Drawing.Point cursorPosition =
-                System.Windows.Forms.Cursor.Position +
-                new System.Drawing.Size(15, -20);
+                System.Windows.Forms.Cursor.Position + new System.Drawing.Size(15, -20);
 
-            // Convert screen coordinates to device-independent units
             PresentationSource presentationSource = PresentationSource.FromVisual(_trayWindow);
-            if (presentationSource != null && presentationSource.CompositionTarget != null)
+            if (presentationSource?.CompositionTarget != null)
             {
                 Matrix transform = presentationSource.CompositionTarget.TransformFromDevice;
-                System.Windows.Point transformedCursorPosition =
+                System.Windows.Point transformed =
                     transform.Transform(new System.Windows.Point(cursorPosition.X, cursorPosition.Y));
 
-                _trayWindow.Left = transformedCursorPosition.X - _trayWindow.ActualWidth;
-                _trayWindow.Top = transformedCursorPosition.Y - _trayWindow.ActualHeight;
+                _trayWindow.Left = transformed.X - _trayWindow.ActualWidth;
+                _trayWindow.Top = transformed.Y - _trayWindow.ActualHeight;
             }
             else
             {
-                // Fallback if PresentationSource is not available
                 _trayWindow.Left = cursorPosition.X - _trayWindow.ActualWidth;
                 _trayWindow.Top = cursorPosition.Y - _trayWindow.ActualHeight;
             }
 
-            // Make the window fully visible
             _trayWindow.Opacity = 1;
             _trayWindow.Activate();
         }
@@ -285,13 +239,11 @@ namespace Dexa
             _isAppClosed = true;
             _trayIcon?.Dispose();
             ScrCpyRunners.TurnOff();
-            try
-            {
-                _mutex?.ReleaseMutex();
-            }
-            catch
-            {
-            }
+
+            // K6: unhook keyboard hook on exit
+            KeyboardInterceptorWinForms.Stop();
+
+            try { _mutex?.ReleaseMutex(); } catch { }
 
             base.OnExit(e);
         }

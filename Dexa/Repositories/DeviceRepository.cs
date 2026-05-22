@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -14,6 +15,8 @@ namespace Else.PhoneMirror.Repositories
             "Dexa",
             "devices.json");
 
+        // K2: single lock for all access to _devices
+        private static readonly object _lock = new object();
         private static List<Device> _devices;
 
         static DeviceRepository()
@@ -23,50 +26,52 @@ namespace Else.PhoneMirror.Repositories
 
         public static List<Device> GetDevices()
         {
-            if (_devices == null)
-                _devices = LoadFromFile();
-
-            return _devices;
+            lock (_lock)
+                return _devices.ToList();
         }
 
         public static void Add(Device device)
         {
-            if (!_devices.Any(d => d.Name == device.Name))
+            lock (_lock)
             {
-                _devices.Add(device);
-                SaveToFile();
+                if (!_devices.Any(d => d.Name == device.Name))
+                    _devices.Add(device);
             }
+            SaveToFile();
         }
 
         public static void Remove(string deviceName)
         {
-            var device = _devices.FirstOrDefault(d => d.Name == deviceName);
-            if (device != null)
+            lock (_lock)
             {
-                _devices.Remove(device);
-                SaveToFile();
+                var device = _devices.FirstOrDefault(d => d.Name == deviceName);
+                if (device != null)
+                    _devices.Remove(device);
             }
+            SaveToFile();
         }
 
         public static void Update(Device device)
         {
-            var existingDevice = _devices.FirstOrDefault(d => d.Name == device.Name);
-            if (existingDevice != null)
+            lock (_lock)
             {
-                existingDevice.HardwareName = device.HardwareName;
-                existingDevice.IsEmulator = device.IsEmulator;
-                existingDevice.IsAvailable = device.IsAvailable;
-                existingDevice.IsNetworkVisible = device.IsNetworkVisible;
-                existingDevice.IsRemoteConnection = device.IsRemoteConnection;
-                existingDevice.CanBeRemoteConnected = device.CanBeRemoteConnected;
-                existingDevice.IpAddress = device.IpAddress;
-                existingDevice.FriendlyName = device.FriendlyName;
+                var existing = _devices.FirstOrDefault(d => d.Name == device.Name);
+                if (existing != null)
+                {
+                    existing.HardwareName = device.HardwareName;
+                    existing.IsEmulator = device.IsEmulator;
+                    existing.IsAvailable = device.IsAvailable;
+                    existing.IsNetworkVisible = device.IsNetworkVisible;
+                    existing.IsRemoteConnection = device.IsRemoteConnection;
+                    existing.CanBeRemoteConnected = device.CanBeRemoteConnected;
+                    existing.IpAddress = device.IpAddress;
+                    existing.FriendlyName = device.FriendlyName;
+                }
+                else
+                {
+                    _devices.Add(device);
+                }
             }
-            else
-            {
-                _devices.Add(device);
-            }
-
             SaveToFile();
         }
 
@@ -75,15 +80,17 @@ namespace Else.PhoneMirror.Repositories
             if (device == null)
                 return;
 
-            var existingDevice = _devices.FirstOrDefault(d => d.Name == device.Name);
-            if (existingDevice != null)
+            lock (_lock)
             {
-                existingDevice.IsRunning = device.IsRunning;
-                existingDevice.DeviceWindow = device.DeviceWindow;
-                existingDevice.DeviceMedia = device.DeviceMedia;
-                existingDevice.LastUsage = device.LastUsage;
+                var existing = _devices.FirstOrDefault(d => d.Name == device.Name);
+                if (existing != null)
+                {
+                    existing.IsRunning = device.IsRunning;
+                    existing.DeviceWindow = device.DeviceWindow;
+                    existing.DeviceMedia = device.DeviceMedia;
+                    existing.LastUsage = device.LastUsage;
+                }
             }
-
             SaveToFile();
         }
 
@@ -91,20 +98,17 @@ namespace Else.PhoneMirror.Repositories
         {
             try
             {
-                lock (_devices)
-                {
-                    Directory.CreateDirectory(Path.GetDirectoryName(DevicesFilePath)!);
-                    string json = System.Text.Json.JsonSerializer.Serialize(_devices,
-                        new System.Text.Json.JsonSerializerOptions
-                        {
-                            WriteIndented = true
-                        });
-                    File.WriteAllText(DevicesFilePath, json);
-                }
+                List<Device> snapshot;
+                lock (_lock)
+                    snapshot = _devices.ToList();
+
+                Directory.CreateDirectory(Path.GetDirectoryName(DevicesFilePath)!);
+                string json = JsonSerializer.Serialize(snapshot, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(DevicesFilePath, json);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd podczas zapisywania urządzeń: {ex.Message}");
+                Debug.WriteLine($"Błąd podczas zapisywania urządzeń: {ex.Message}");
             }
         }
 
@@ -115,12 +119,12 @@ namespace Else.PhoneMirror.Repositories
                 if (File.Exists(DevicesFilePath))
                 {
                     string json = File.ReadAllText(DevicesFilePath);
-                    return System.Text.Json.JsonSerializer.Deserialize<List<Device>>(json) ?? new List<Device>();
+                    return JsonSerializer.Deserialize<List<Device>>(json) ?? new List<Device>();
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd podczas wczytywania urządzeń: {ex.Message}");
+                Debug.WriteLine($"Błąd podczas wczytywania urządzeń: {ex.Message}");
             }
 
             return new List<Device>();
