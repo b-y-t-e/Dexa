@@ -482,7 +482,7 @@ public class ScrCpyRunner : IDisposable
 
     private void CheckOrientation()
     {
-        if (AppSettings.Load().IsAspectRatioUnlocked)
+        if (!AppSettings.Load().IsAspectRatioUnlocked)
             return;
 
         if (_scrCpyHwnd == IntPtr.Zero)
