@@ -642,6 +642,11 @@ public class ScrCpyRunner : IDisposable
         Console.WriteLine($"{DateTime.Now.TimeOfDay} - ScrCpyRunner: {message}");
     }
 
+    public void RestartProcess()
+    {
+        DisposeProcess();
+    }
+
     public void Dispose()
     {
         DisposeProcess();

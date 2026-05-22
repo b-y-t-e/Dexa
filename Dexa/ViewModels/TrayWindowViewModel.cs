@@ -162,21 +162,25 @@ namespace Dexa.ViewModels
         private void ToggleKeyboard()
         {
             IsKeyboardEnabled = !IsKeyboardEnabled;
+            ScrCpyRunners.RestartAll();
         }
 
         private void ToggleScreen()
         {
             IsScreenOffEnabled = !IsScreenOffEnabled;
+            ScrCpyRunners.RestartAll();
         }
 
         private void ToggleAspectRatio()
         {
             IsAspectRatioUnlocked = !IsAspectRatioUnlocked;
+            ScrCpyRunners.RestartAll();
         }
 
         private void ToggleAudio()
         {
             IsAudioEnabled = !IsAudioEnabled;
+            ScrCpyRunners.RestartAll();
         }
 
         public RelayCommand<Device> TurnOnDeviceCommand { get; private set; }

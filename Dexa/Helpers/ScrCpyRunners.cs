@@ -60,6 +60,16 @@ public static class ScrCpyRunners
             r.Dispose();
     }
 
+    public static void RestartAll()
+    {
+        List<ScrCpyRunner> runners;
+        lock (_lock)
+            runners = _deviceRunners.ToList();
+
+        foreach (var r in runners)
+            r.RestartProcess();
+    }
+
     public static void TurnOn(Device device)
     {
         lock (_lock)
