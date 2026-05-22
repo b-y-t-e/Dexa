@@ -87,12 +87,11 @@ public static class ScrCpy
         try
         {
             var deviceInfo = ScrCpy.GetDeviceInfo(deviceName);
-            var friendlyName = "";
 
-            if (deviceInfo.TryGetValue("Model", out var modelOnly))
-                friendlyName += modelOnly;
+            deviceInfo.TryGetValue("Model", out var model);
+            var friendlyName = string.IsNullOrEmpty(model) ? deviceName : model;
 
-            if (isWifi && !String.IsNullOrEmpty(friendlyName))
+            if (isWifi)
                 friendlyName += " ⫽ WiFi";
 
             return friendlyName;
@@ -491,9 +490,10 @@ public static class ScrCpy
         if (!string.IsNullOrEmpty(uptime) && double.TryParse(uptime, out double uptimeSeconds))
             result["Uptime"] = TimeSpan.FromSeconds(uptimeSeconds).ToString();
 
-        // Dodaj do pamięci podręcznej
-        cacheKey = $"DeviceInfo_{deviceName}";
-        _deviceInfoCache.Set(cacheKey, result, _deviceInfoCacheDuration);
+        // Cache only if we got at least the model name; if model is missing the device
+        // wasn't ready yet (ADB daemon warming up) — skip cache so next cycle retries.
+        if (result.ContainsKey("Model"))
+            _deviceInfoCache.Set($"DeviceInfo_{deviceName}", result, _deviceInfoCacheDuration);
 
         return result;
     }
