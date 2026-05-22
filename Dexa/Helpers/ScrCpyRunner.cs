@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using Dexa.Helpers;
 using Else.PhoneMirror.Repositories;
 using Else.PhoneMirror.ViewModels;
 
@@ -481,6 +482,9 @@ public class ScrCpyRunner : IDisposable
 
     private void CheckOrientation()
     {
+        if (AppSettings.Load().IsAspectRatioUnlocked)
+            return;
+
         if (_scrCpyHwnd == IntPtr.Zero)
             return;
 

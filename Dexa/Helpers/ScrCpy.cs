@@ -189,24 +189,19 @@ public static class ScrCpy
 
         var args = $" -s {HardwareDevice.Name}" +
                    $" --stay-awake" +
-                   $" --no-window-aspect-ratio-lock" +
-                   //$" --window-borderless" +
-                   //$" --power-off-on-close" +
-                   //$" --kill-adb-on-close" +
                    $" --shortcut-mod=rsuper";
 
-        // Add keyboard/gamepad settings based on toggle
-        if (!settings.IsKeyboardEnabled)
-        {
-            args += $" --gamepad=uhid" +
-                   $" --keyboard=uhid";
-        }
+        if (settings.IsAspectRatioUnlocked)
+            args += " --no-window-aspect-ratio-lock";
 
-        // Add screen turn-off setting based on toggle
+        if (!settings.IsAudioEnabled)
+            args += " --no-audio";
+
+        if (!settings.IsKeyboardEnabled)
+            args += " --gamepad=uhid --keyboard=uhid";
+
         if (!settings.IsScreenOffEnabled)
-        {
-            args += $" --turn-screen-off";
-        }
+            args += " --turn-screen-off";
 
         if (isFullscreen)
             args += $" --fullscreen";

@@ -13,6 +13,8 @@ namespace Dexa.Helpers
 
         public bool IsKeyboardEnabled { get; set; } = true;
         public bool IsScreenOffEnabled { get; set; } = true;
+        public bool IsAspectRatioUnlocked { get; set; } = false;
+        public bool IsAudioEnabled { get; set; } = true;
 
         public static AppSettings Load()
         {

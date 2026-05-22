@@ -73,11 +73,37 @@ namespace Dexa.ViewModels
             }
         }
 
+        private bool _isAspectRatioUnlocked;
+        public bool IsAspectRatioUnlocked
+        {
+            get => _isAspectRatioUnlocked;
+            set
+            {
+                SetProperty(ref _isAspectRatioUnlocked, value);
+                _settings.IsAspectRatioUnlocked = value;
+                _settings.Save();
+            }
+        }
+
+        private bool _isAudioEnabled;
+        public bool IsAudioEnabled
+        {
+            get => _isAudioEnabled;
+            set
+            {
+                SetProperty(ref _isAudioEnabled, value);
+                _settings.IsAudioEnabled = value;
+                _settings.Save();
+            }
+        }
+
         public TrayWindowViewModel()
         {
             _settings = AppSettings.Load();
             _isKeyboardEnabled = _settings.IsKeyboardEnabled;
             _isScreenOffEnabled = _settings.IsScreenOffEnabled;
+            _isAspectRatioUnlocked = _settings.IsAspectRatioUnlocked;
+            _isAudioEnabled = _settings.IsAudioEnabled;
 
             _devices = new ObservableCollection<Device>(DeviceRepository.GetDevices());
             _devices.CollectionChanged += Devices_CollectionChanged;
@@ -90,6 +116,8 @@ namespace Dexa.ViewModels
             DisconnectWirelessCommand = new RelayCommand<Device>(DisconnectWireless);
             ToggleKeyboardCommand = new RelayCommand(ToggleKeyboard);
             ToggleScreenCommand = new RelayCommand(ToggleScreen);
+            ToggleAspectRatioCommand = new RelayCommand(ToggleAspectRatio);
+            ToggleAudioCommand = new RelayCommand(ToggleAudio);
         }
 
         private void Devices_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -122,6 +150,8 @@ namespace Dexa.ViewModels
         public RelayCommand RefreshDevicesCommand { get; private set; }
         public RelayCommand ToggleKeyboardCommand { get; private set; }
         public RelayCommand ToggleScreenCommand { get; private set; }
+        public RelayCommand ToggleAspectRatioCommand { get; private set; }
+        public RelayCommand ToggleAudioCommand { get; private set; }
         public RelayCommand ExitApplicationCommand { get; private set; }
 
         private void ExitApplication()
@@ -137,6 +167,16 @@ namespace Dexa.ViewModels
         private void ToggleScreen()
         {
             IsScreenOffEnabled = !IsScreenOffEnabled;
+        }
+
+        private void ToggleAspectRatio()
+        {
+            IsAspectRatioUnlocked = !IsAspectRatioUnlocked;
+        }
+
+        private void ToggleAudio()
+        {
+            IsAudioEnabled = !IsAudioEnabled;
         }
 
         public RelayCommand<Device> TurnOnDeviceCommand { get; private set; }
