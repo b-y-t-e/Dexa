@@ -129,8 +129,12 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <Button Grid.Column="0" Command="{Binding ToggleKeyboardCommand}" Margin="0, 0, 2, 0"
+                <Button Grid.Row="0" Grid.Column="0" Command="{Binding ToggleKeyboardCommand}" Margin="0, 0, 2, 2"
                         Opacity="{Binding IsKeyboardEnabled, Converter={StaticResource BooleanToDoubleConverter}, ConverterParameter=1.0_0.7}"
                         BorderBrush="{Binding IsKeyboardEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}">
                     <TextBlock Margin="10, 3" FontSize="11"
@@ -138,22 +142,15 @@
                                Foreground="{Binding IsKeyboardEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}"/>
                 </Button>
 
-                <Button Grid.Column="1" Command="{Binding ToggleScreenCommand}" Margin="2, 0, 0, 0"
+                <Button Grid.Row="0" Grid.Column="1" Command="{Binding ToggleScreenCommand}" Margin="2, 0, 0, 2"
                         Opacity="{Binding IsScreenOffEnabled, Converter={StaticResource BooleanToDoubleConverter}, ConverterParameter=1.0_0.7}"
                         BorderBrush="{Binding IsScreenOffEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}">
                     <TextBlock Margin="10, 3" FontSize="11"
                                Text="{Binding IsScreenOffEnabled, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=SCREEN__ON_SCREEN__OFF}"
                                Foreground="{Binding IsScreenOffEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}"/>
                 </Button>
-            </Grid>
 
-            <Grid Margin="0, 0, 0, 5">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Button Grid.Column="0" Command="{Binding ToggleAspectRatioCommand}" Margin="0, 0, 2, 0"
+                <Button Grid.Row="1" Grid.Column="0" Command="{Binding ToggleAspectRatioCommand}" Margin="0, 0, 2, 0"
                         Opacity="{Binding IsAspectRatioUnlocked, Converter={StaticResource BooleanToDoubleConverter}, ConverterParameter=1.0_0.7}"
                         BorderBrush="{Binding IsAspectRatioUnlocked, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}">
                     <TextBlock Margin="10, 3" FontSize="11"
@@ -161,7 +158,7 @@
                                Foreground="{Binding IsAspectRatioUnlocked, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}"/>
                 </Button>
 
-                <Button Grid.Column="1" Command="{Binding ToggleAudioCommand}" Margin="2, 0, 0, 0"
+                <Button Grid.Row="1" Grid.Column="1" Command="{Binding ToggleAudioCommand}" Margin="2, 0, 0, 0"
                         Opacity="{Binding IsAudioEnabled, Converter={StaticResource BooleanToDoubleConverter}, ConverterParameter=1.0_0.7}"
                         BorderBrush="{Binding IsAudioEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}">
                     <TextBlock Margin="10, 3" FontSize="11"
