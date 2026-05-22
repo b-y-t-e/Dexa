@@ -69,9 +69,6 @@ public static class KeyboardInterceptorWinForms
     public delegate void KeyboardEventDelegate(KeyboardEventArgs e);
     public static event KeyboardEventDelegate KeyboardEvent;
 
-    public delegate void F11KeyPressedDelegate(IntPtr windowHandle);
-
-    // K4: KeyParam stores a copy of the struct, not the raw pointer
     private class KeyParam
     {
         public int nCode;
@@ -81,11 +78,11 @@ public static class KeyboardInterceptorWinForms
 
     static private readonly List<KeyParam> _keyParams = new List<KeyParam>();
 
-    // K3: dedicated lock for _monitoredWindowHandles
     static private readonly object _handleLock = new object();
     static private readonly HashSet<IntPtr> _monitoredWindowHandles = new HashSet<IntPtr>();
 
-    // W6: cancellation token for KeysQueue
+    static private readonly object _hookLock = new object();
+
     private static CancellationTokenSource _cts = new CancellationTokenSource();
 
     static KeyboardInterceptorWinForms()
@@ -96,11 +93,14 @@ public static class KeyboardInterceptorWinForms
 
     public static void InitializeHook()
     {
-        if (!_initialized)
+        lock (_hookLock)
         {
-            _proc = HookCallback;
-            _hookID = SetHook(_proc);
-            _initialized = true;
+            if (!_initialized)
+            {
+                _proc = HookCallback;
+                _hookID = SetHook(_proc);
+                _initialized = true;
+            }
         }
     }
 
@@ -146,7 +146,6 @@ public static class KeyboardInterceptorWinForms
 
                     if (isKeyDown)
                     {
-                        // K4: use the pre-copied struct, not a dangling pointer
                         int vkCode = (int)key.hookStruct.vkCode;
                         OnKeyEvent(vkCode, isKeyDown, isSystemKey);
                     }
@@ -161,7 +160,6 @@ public static class KeyboardInterceptorWinForms
 
     static private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
     {
-        // K4: copy the struct immediately while the pointer is still valid
         lock (_keyParams)
         {
             _keyParams.Add(new KeyParam
@@ -197,7 +195,6 @@ public static class KeyboardInterceptorWinForms
         }
     }
 
-    // K3: lock around HashSet access
     static public void AddWindowHandle(IntPtr hwnd)
     {
         if (hwnd == IntPtr.Zero) return;
@@ -224,7 +221,6 @@ public static class KeyboardInterceptorWinForms
             _initialized = false;
         }
 
-        // W6: stop KeysQueue thread
         _cts.Cancel();
     }
 

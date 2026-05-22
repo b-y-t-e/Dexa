@@ -5,7 +5,6 @@ namespace Dexa;
 
 public static class ScrCpyRunners
 {
-    // K1: lock for thread-safe access from DeviceWatcherThread and UI thread
     static private readonly object _lock = new object();
     static private readonly List<ScrCpyRunner> _deviceRunners = new List<ScrCpyRunner>();
 
@@ -32,11 +31,16 @@ public static class ScrCpyRunners
                 .ToList();
         }
 
-        foreach (var device in toAdd)
+        var newRunners = toAdd.Select(d => new ScrCpyRunner(d)).ToList();
+        lock (_lock)
         {
-            var runner = new ScrCpyRunner(device);
-            lock (_lock)
-                _deviceRunners.Add(runner);
+            foreach (var runner in newRunners)
+            {
+                if (!_deviceRunners.Any(r => r.Device.Name == runner.Device.Name))
+                    _deviceRunners.Add(runner);
+                else
+                    runner.Dispose();
+            }
         }
 
         foreach (var r in toDispose)

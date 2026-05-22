@@ -20,8 +20,14 @@ namespace Dexa.ViewModels
             get => _devices;
             set
             {
+                if (_devices != null)
+                    _devices.CollectionChanged -= Devices_CollectionChanged;
+
                 SetProperty(ref _devices, value);
                 IsDeviceListEmpty = value.Count == 0;
+
+                if (_devices != null)
+                    _devices.CollectionChanged += Devices_CollectionChanged;
             }
         }
 
@@ -69,7 +75,6 @@ namespace Dexa.ViewModels
 
         public TrayWindowViewModel()
         {
-            // Load settings
             _settings = AppSettings.Load();
             _isKeyboardEnabled = _settings.IsKeyboardEnabled;
             _isScreenOffEnabled = _settings.IsScreenOffEnabled;
@@ -79,7 +84,6 @@ namespace Dexa.ViewModels
             IsDeviceListEmpty = _devices.Count == 0;
 
             RefreshDevicesCommand = new RelayCommand(RefreshDevices);
-            // ShowHelpCommand = new RelayCommand(ShowHelp);
             ExitApplicationCommand = new RelayCommand(ExitApplication);
             TurnOnDeviceCommand = new RelayCommand<Device>(TurnOnDevice);
             ConnectWirelessCommand = new RelayCommand<Device>(ConnectWireless);
@@ -108,9 +112,7 @@ namespace Dexa.ViewModels
         protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(field, value))
-            {
                 return false;
-            }
 
             field = value;
             OnPropertyChanged(propertyName);
@@ -120,18 +122,6 @@ namespace Dexa.ViewModels
         public RelayCommand RefreshDevicesCommand { get; private set; }
         public RelayCommand ToggleKeyboardCommand { get; private set; }
         public RelayCommand ToggleScreenCommand { get; private set; }
-
-        // public RelayCommand ShowHelpCommand { get; private set; }
-
-        // private void ShowHelp()
-        // {
-        //     var helpWindow = new HelpWindow
-        //     {
-        //         DataContext = new HelpWindowViewModel()
-        //     };
-        //     helpWindow.Show();
-        // }
-
         public RelayCommand ExitApplicationCommand { get; private set; }
 
         private void ExitApplication()
@@ -153,23 +143,20 @@ namespace Dexa.ViewModels
 
         private void TurnOnDevice(Device device)
         {
-            if (device != null)
-            {
-                if (device.IsRemoteConnection)
-                {
-                    ScrCpy.ConnectWirelessTo(device.Name, device.IpAddress);
-                }
+            if (device == null) return;
 
-                ScrCpyRunners.TurnOn(device);
-                System.Windows.Application.Current.Windows[0].Hide(); // Close the tray window
-            }
+            if (device.IsRemoteConnection)
+                ScrCpy.ConnectWirelessTo(device.Name, device.IpAddress);
+
+            ScrCpyRunners.TurnOn(device);
+            HideTrayWindow();
         }
 
         public RelayCommand<Device> ConnectWirelessCommand { get; private set; }
 
         private void ConnectWireless(Device device)
         {
-            System.Windows.Application.Current.Windows[0].Hide(); // Close the tray window
+            HideTrayWindow();
             if (device != null && !string.IsNullOrEmpty(device.Name) && !string.IsNullOrEmpty(device.IpAddress))
             {
                 ScrCpy.ConnectWireless(device.Name);
@@ -181,16 +168,24 @@ namespace Dexa.ViewModels
 
         private void DisconnectWireless(Device device)
         {
-            System.Windows.Application.Current.Windows[0].Hide(); // Close the tray window
+            HideTrayWindow();
             if (device != null && !string.IsNullOrEmpty(device.Name))
             {
                 ScrCpy.DisconnectWireless(device.Name);
                 DeviceRepository.Remove(device.Name);
+                Devices = new ObservableCollection<Device>(DeviceRepository.GetDevices());
+            }
+        }
 
-                foreach (var x in Devices.ToArray())
-                    Devices.Remove(x);
-                foreach (var x in DeviceRepository.GetDevices())
-                    Devices.Add(x);
+        private static void HideTrayWindow()
+        {
+            foreach (Window w in System.Windows.Application.Current.Windows)
+            {
+                if (w is TrayWindow)
+                {
+                    w.Hide();
+                    return;
+                }
             }
         }
     }

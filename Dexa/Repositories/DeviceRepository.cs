@@ -15,7 +15,6 @@ namespace Else.PhoneMirror.Repositories
             "Dexa",
             "devices.json");
 
-        // K2: single lock for all access to _devices
         private static readonly object _lock = new object();
         private static List<Device> _devices;
 
@@ -32,23 +31,27 @@ namespace Else.PhoneMirror.Repositories
 
         public static void Add(Device device)
         {
+            bool changed;
             lock (_lock)
             {
-                if (!_devices.Any(d => d.Name == device.Name))
+                changed = !_devices.Any(d => d.Name == device.Name);
+                if (changed)
                     _devices.Add(device);
             }
-            SaveToFile();
+            if (changed) SaveToFile();
         }
 
         public static void Remove(string deviceName)
         {
+            bool changed;
             lock (_lock)
             {
                 var device = _devices.FirstOrDefault(d => d.Name == deviceName);
-                if (device != null)
-                    _devices.Remove(device);
+                changed = device != null;
+                if (changed)
+                    _devices.Remove(device!);
             }
-            SaveToFile();
+            if (changed) SaveToFile();
         }
 
         public static void Update(Device device)

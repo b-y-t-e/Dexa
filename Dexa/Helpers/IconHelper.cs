@@ -53,7 +53,6 @@ public static class IconHelper
     static Icon CreateIconFromPng(string pngFilePath)
     {
         using Bitmap bitmap = new Bitmap(pngFilePath);
-        // W2: dispose bitmapWithTransparency to release GDI handle
         using Bitmap bitmapWithTransparency = new Bitmap(bitmap.Width, bitmap.Height, PixelFormat.Format32bppArgb);
 
         using (Graphics g = Graphics.FromImage(bitmapWithTransparency))

@@ -166,7 +166,7 @@ public class ScrCpyRunner : IDisposable
     private void StartScrcpyThread()
     {
         var thread = new Thread(RunScrcpyProcess);
-        thread.IsBackground = false;
+        thread.IsBackground = true;
         thread.Start();
     }
 
@@ -502,7 +502,6 @@ public class ScrCpyRunner : IDisposable
     private void UpdateDeviceOrientation(WindowInfo windowSize)
     {
         const int minSize = 40;
-        bool permissionsExecuted = false;
 
         if (windowSize.Width <= minSize || windowSize.Height <= minSize ||
             windowSize.State == FormWindowState.Minimized)
@@ -513,7 +512,7 @@ public class ScrCpyRunner : IDisposable
         if (_scrCpyLastOrientation == currentOrientation)
             return;
 
-        SetDeviceOrientation(currentOrientation, !permissionsExecuted);
+        SetDeviceOrientation(currentOrientation, executePermissions: true);
         _scrCpyLastOrientation = currentOrientation;
     }
 
@@ -641,6 +640,7 @@ public class ScrCpyRunner : IDisposable
 
     public void Dispose()
     {
+        DisposeProcess();
         Stop();
         UnregisterEvents();
     }

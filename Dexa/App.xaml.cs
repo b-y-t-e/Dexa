@@ -42,7 +42,6 @@ namespace Dexa
         private TrayWindow? _trayWindow;
         private TaskbarIcon? _trayIcon;
 
-        // K5: volatile so DeviceWatcherThread always sees updated value
         private volatile bool _isAppClosed;
 
         protected override void OnStartup(StartupEventArgs e)
@@ -86,7 +85,6 @@ namespace Dexa
 
             ThreadPool.QueueUserWorkItem(DeviceWatcherThread);
 
-            // W1: run update check in background, not on UI thread
             Task.Run(UpdateMyApp);
         }
 
@@ -185,7 +183,6 @@ namespace Dexa
             DeviceRepository.SaveToFile();
         }
 
-        // W8: guard against empty/null IP before sending ping
         private static bool CheckIsDevicePingable(string ipAddress)
         {
             if (string.IsNullOrWhiteSpace(ipAddress))
@@ -240,7 +237,6 @@ namespace Dexa
             _trayIcon?.Dispose();
             ScrCpyRunners.TurnOff();
 
-            // K6: unhook keyboard hook on exit
             KeyboardInterceptorWinForms.Stop();
 
             try { _mutex?.ReleaseMutex(); } catch { }
