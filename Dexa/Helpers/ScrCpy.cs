@@ -17,7 +17,7 @@ public static class ScrCpy
     private static readonly TimeSpan _ipCacheDuration = TimeSpan.FromSeconds(20);
 
     private static readonly IMemoryCache _deviceCache = new MemoryCache(new MemoryCacheOptions());
-    private static readonly TimeSpan _deviceCacheDuration = TimeSpan.FromMicroseconds(1000);
+    private static readonly TimeSpan _deviceCacheDuration = TimeSpan.FromSeconds(1);
 
     private static readonly IMemoryCache _deviceInfoCache = new MemoryCache(new MemoryCacheOptions());
     private static readonly TimeSpan _deviceInfoCacheDuration = TimeSpan.FromMinutes(5);
@@ -88,27 +88,16 @@ public static class ScrCpy
         {
             var deviceInfo = ScrCpy.GetDeviceInfo(deviceName);
             var friendlyName = "";
-            // Podstawowy opis urządzenia (producent i model)
-            /*if (deviceInfo.TryGetValue("Manufacturer", out var manufacturer) &&
-                deviceInfo.TryGetValue("Model", out var model))
-            {
-                friendlyName += $"{manufacturer.FirstLetterCapital()} ⫽ {model}";
-            }*/
+
             if (deviceInfo.TryGetValue("Model", out var modelOnly))
-            {
                 friendlyName += modelOnly;
-            }
-            /* if (deviceInfo.TryGetValue("Name", out var name))
-            {
-                friendlyName += name;
-            }*/
 
             if (isWifi && !String.IsNullOrEmpty(friendlyName))
                 friendlyName += " ⫽ WiFi";
 
             return friendlyName;
         }
-        catch (Exception ex)
+        catch
         {
             return deviceName;
         }
@@ -116,14 +105,12 @@ public static class ScrCpy
 
     public static void ConnectWireless(string hardwareDevice)
     {
-        var er = RunAdb($"-s {hardwareDevice} tcpip 5555");
-        er = er;
+        RunAdb($"-s {hardwareDevice} tcpip 5555");
     }
 
     public static void ConnectWirelessTo(string hardwareDevice, string ip)
     {
-        var er = RunAdb($"-s {hardwareDevice} connect {ip}:5555");
-        er = er;
+        RunAdb($"-s {hardwareDevice} connect {ip}:5555");
     }
 
     public static string GetIp(string hardwareDevice)
@@ -135,7 +122,7 @@ public static class ScrCpy
         var input = "";
         var st = Stopwatch.StartNew();
 
-        while (st.Elapsed < TimeSpan.FromMicroseconds(200))
+        while (st.Elapsed < TimeSpan.FromMilliseconds(200))
         {
             input = RunAdb($"-s {hardwareDevice} exec-out ip -f inet addr show wlan0");
             Thread.Sleep(5);
@@ -170,8 +157,7 @@ public static class ScrCpy
 
     public static void DisconnectWireless(string hardwareDevice)
     {
-        var err = RunAdb($" -s {hardwareDevice} disconnect ");
-        err = err;
+        RunAdb($"-s {hardwareDevice} disconnect");
     }
 
     /* public static Size GetScreenSize(string device)
@@ -254,46 +240,9 @@ public static class ScrCpy
         return args;
     }
 
-    private static List<string> GetDeviceCodecs(string? hardwareDevice)
-    {
-        var codecs = RunScrCpy($"--list-encoders -s {hardwareDevice} ")
-            .Split(new[] { '\n', '\r' })
-            .Where((x, i) => x.Trim().StartsWith("--video-codec=") && i > 0)
-            .ToList();
-        return codecs;
-    }
-
-    static void DisplayHorizontaly()
-    {
-        RunAdb($"exec-out settings put system user_rotation 1");
-        RunAdb(
-            $"exec-out am broadcast -a android.intent.action.CONFIGURATION_CHANGED --ez android.intent.extra.KEY_USER_ROTATION 1");
-    }
-
-    static void CloseAndroidApp(String appName)
-    {
-        RunAdb($"exec-out am force-stop {appName}");
-    }
-
     public static void ShowDesktop()
     {
         RunAdb($"exec-out input keyevent 3");
-        return;
-        var lines = RunAdb($"exec-out dumpsys display")
-            .Split(Environment.NewLine)
-            .Where(x => x.Contains("DisplayViewport"))
-            .ToList();
-
-        var ids = lines
-            .Select(x => GetVirtualActiveDisplayId(x))
-            .Where(x => x.HasValue)
-            .Select(x => x.Value)
-            .ToList();
-
-        if (ids.Count == 0)
-            return;
-
-        RunAdb($"exec-out input -d {ids.First()} keyevent 3");
     }
 
     public static int? GetVirtualActiveDisplayId(string input)
@@ -425,21 +374,6 @@ public static class ScrCpy
         }
     }
 
-    public class ScrCpyParams
-    {
-        public CancellationTokenSource CancellationToken { get; set; }
-        public String RecordFile { get; set; }
-        public Action AfterStart { get; set; }
-        public Action AfterStop { get; set; }
-        public Double? ScreenSize { get; set; } = 0.85;
-        public Boolean UhidMouse { get; set; }
-        public Boolean UhidKeyboard { get; set; }
-        public Boolean UhidGamepad { get; set; }
-        public String AppName { get; set; }
-        public IntPtr MainWindowHandle { get; set; }
-        public Action<IntPtr> ScrCpyWindowsCreated { get; set; }
-    }
-
     public static Orientation? ToggleScreenOrientation(string? hardwareDeviceName)
     {
         if (hardwareDeviceName == null)
@@ -507,20 +441,6 @@ public static class ScrCpy
         }
     }
 
-    public static Orientation? GetDeviceOrientation2(string? hardwareDeviceName)
-    {
-        if (hardwareDeviceName == null)
-            return null;
-
-        var userRotation = RunAdb($"-s {hardwareDeviceName} exec-out settings get system user_rotation").Trim();
-        return userRotation.Equals("1") ? Orientation.Horizontal : Orientation.Vertical;
-    }
-
-    /// <summary>
-    /// Pobiera szczegółowe informacje o urządzeniu
-    /// </summary>
-    /// <param name="deviceName">Identyfikator urządzenia</param>
-    /// <returns>Słownik z informacjami o urządzeniu</returns>
     public static Dictionary<string, string> GetDeviceInfo(string deviceName)
     {
         string cacheKey = $"DeviceInfo_{deviceName}";
@@ -611,32 +531,11 @@ public static class ScrCpy
         RunAdb($"-s {hardwareDeviceName} exec-out input keyevent KEYCODE_MEDIA_PLAY");
     }
 
-    public static void MediaPlayPause(string? hardwareDeviceName)
-    {
-        if (string.IsNullOrEmpty(hardwareDeviceName))
-            return;
-        RunAdb($"-s {hardwareDeviceName} exec-out input keyevent KEYCODE_MEDIA_PLAY_PAUSE");
-    }
-
     public static void ExecuteHome(string? hardwareDeviceName)
     {
         if (string.IsNullOrEmpty(hardwareDeviceName))
             return;
         RunAdb($"-s {hardwareDeviceName} exec-out input keyevent 3");
-    }
-
-    public static void ExecuteBack(string? hardwareDeviceName)
-    {
-        if (string.IsNullOrEmpty(hardwareDeviceName))
-            return;
-        RunAdb($"-s {hardwareDeviceName} exec-out input keyevent 4");
-    }
-
-    public static void ExecuteRecentApps(string? hardwareDeviceName)
-    {
-        if (string.IsNullOrEmpty(hardwareDeviceName))
-            return;
-        RunAdb($"-s {hardwareDeviceName} exec-out input keyevent 187");
     }
 
     public static Orientation? GetDeviceOrientation(string? hardwareDeviceName)
@@ -660,52 +559,16 @@ public static class ScrCpy
             }
         }*/
 
-        // 2) Fallback: parsuj sekcję Display id 0 z dumpsys window displays
         var output = RunAdb($"-s {hardwareDeviceName} exec-out dumpsys window displays");
-        var lines = output
-            .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-            .Where(x => x.Contains("mCurrentRotation"))
-            .ToList();
-
-        bool inDefault = false;
-        foreach (var line in lines)
+        foreach (var line in output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                   .Where(x => x.Contains("mCurrentRotation")))
         {
             if (line.Trim().EndsWith("_0") || line.Trim().EndsWith("_180"))
                 return Orientation.Vertical;
-            else if (line.Trim().EndsWith("_90") || line.Trim().EndsWith("_270"))
+            if (line.Trim().EndsWith("_90") || line.Trim().EndsWith("_270"))
                 return Orientation.Horizontal;
-
-            /*if (line.TrimStart().StartsWith("Display id 0"))
-            {
-                inDefault = true;
-                continue;
-            }
-
-            if (inDefault && line.TrimStart().StartsWith("Display id "))
-            {
-                // koniec sekcji domyślnego ekranu
-                break;
-            }
-
-            if (inDefault)
-            {
-                var m2 = Regex.Match(line, @"r=(\d)");
-                if (m2.Success && int.TryParse(m2.Groups[1].Value, out int rot))
-                {
-                    switch (rot)
-                    {
-                        case 0:
-                        case 2:
-                            return Orientation.Vertical;
-                        case 1:
-                        case 3:
-                            return Orientation.Horizontal;
-                    }
-                }
-            }*/
         }
 
-        // jeśli nic nie znalazło – zwróć null
         return null;
     }
 }

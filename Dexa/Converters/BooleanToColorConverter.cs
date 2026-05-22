@@ -83,10 +83,8 @@ namespace Dexa.Converters
             }
             catch (FormatException)
             {
-                // Fallback for invalid color name
                 return System.Windows.Media.Brushes.Black;
             }
-            return System.Windows.Media.Brushes.Black;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
