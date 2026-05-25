@@ -82,4 +82,16 @@ public static class ScrCpyRunners
             _deviceRunners.Add(new ScrCpyRunner(device));
         }
     }
+
+    public static ScrCpyRunner? GetRunner(Device device)
+    {
+        lock (_lock)
+            return _deviceRunners.FirstOrDefault(r => r.Device.Name == device.Name);
+    }
+
+    public static void ToggleFullscreen(Device d)  => GetRunner(d)?.ToggleFullscreen();
+    public static void ToggleGameMode(Device d)    => GetRunner(d)?.ToggleGameMode();
+    public static void ToggleRecording(Device d)   => GetRunner(d)?.ToggleRecording();
+    public static void ToggleOrientation(Device d) => GetRunner(d)?.ToggleOrientation();
+    public static void ShowDesktop(Device d)       => GetRunner(d)?.ShowDesktop();
 }

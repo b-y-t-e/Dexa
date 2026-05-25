@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Newtonsoft.Json;
 
 namespace Else.PhoneMirror.ViewModels;
 
@@ -96,6 +97,30 @@ public class Device : INotifyPropertyChanged
     {
         get => _isRunning;
         set => SetProperty(ref _isRunning, value);
+    }
+
+    private bool _isFullscreen;
+    [JsonIgnore]
+    public bool IsFullscreen
+    {
+        get => _isFullscreen;
+        set => SetProperty(ref _isFullscreen, value);
+    }
+
+    private bool _isGameMode;
+    [JsonIgnore]
+    public bool IsGameMode
+    {
+        get => _isGameMode;
+        set => SetProperty(ref _isGameMode, value);
+    }
+
+    private bool _isRecording;
+    [JsonIgnore]
+    public bool IsRecording
+    {
+        get => _isRecording;
+        set => SetProperty(ref _isRecording, value);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using Dexa.Helpers;
 using Else.PhoneMirror.Repositories;
 using Else.PhoneMirror.ViewModels;
@@ -10,9 +11,7 @@ public class ScrCpyRunner : IDisposable
 {
     private Process? _scrCpyProcess;
     private IntPtr _scrCpyHwnd;
-    private bool _isFullscreen;
-    private bool _isGameMode;
-    private bool _isRecording;
+    private int _restartPending;
     private string? _recordFile;
     private Stopwatch? _stopwatch;
 
@@ -45,11 +44,11 @@ public class ScrCpyRunner : IDisposable
         switch (keyCode)
         {
             case KeyboardInterceptorWinForms.VirtualKeys.F10:
-                ToggleDeviceOrientation();
+                ToggleOrientation();
                 break;
 
             case KeyboardInterceptorWinForms.VirtualKeys.F11:
-                ToggleFullscreenMode();
+                ToggleFullscreen();
                 break;
 
             case KeyboardInterceptorWinForms.VirtualKeys.F9:
@@ -78,32 +77,43 @@ public class ScrCpyRunner : IDisposable
         }
     }
 
-    private void ToggleDeviceOrientation()
+    public void ToggleOrientation()
     {
         LogMessage("Przełączanie orientacji ekranu");
         Task.Run(() => ScrCpy.ToggleScreenOrientation(Device.Name));
     }
 
-    private void ToggleFullscreenMode()
+    public void ToggleFullscreen()
     {
         LogMessage("Przełączanie trybu pełnoekranowego");
-        _isFullscreen = !_isFullscreen;
-        DisposeProcess();
+        Device.IsFullscreen = !Device.IsFullscreen;
+        ScheduleRestart();
     }
 
-    private void ToggleGameMode()
+    public void ToggleGameMode()
     {
         LogMessage("Przełączanie trybu gamingowego");
-        _isGameMode = !_isGameMode;
-        DisposeProcess();
+        Device.IsGameMode = !Device.IsGameMode;
+        ScheduleRestart();
     }
 
-    private void ToggleRecording()
+    private void ScheduleRestart()
     {
-        if (_isRecording)
+        if (Interlocked.CompareExchange(ref _restartPending, 1, 0) != 0)
+            return;
+        Task.Run(() =>
+        {
+            try { DisposeProcess(); }
+            finally { Interlocked.Exchange(ref _restartPending, 0); }
+        });
+    }
+
+    public void ToggleRecording()
+    {
+        if (Device.IsRecording)
         {
             this._recordFile = null;
-            this._isRecording = false;
+            Device.IsRecording = false;
             DisposeProcess(stopRecording: false);
         }
         else
@@ -124,8 +134,8 @@ public class ScrCpyRunner : IDisposable
                     return;
 
                 this._recordFile = saveFileDialog.FileName;
-                this._isRecording = true;
-                DisposeProcess(stopRecording: false);
+                Device.IsRecording = true;
+                Task.Run(() => DisposeProcess(stopRecording: false));
             });
         }
     }
@@ -133,7 +143,7 @@ public class ScrCpyRunner : IDisposable
     private void StopRecording()
     {
         this._recordFile = null;
-        this._isRecording = false;
+        Device.IsRecording = false;
     }
 
     private void ShowHelp()
@@ -148,10 +158,10 @@ public class ScrCpyRunner : IDisposable
         // Implementacja zamykania aplikacji
     }
 
-    private void ShowDesktop()
+    public void ShowDesktop()
     {
         LogMessage("Wyświetlanie pulpitu na urządzeniu");
-        ScrCpy.ExecuteHome(Device.Name);
+        Task.Run(() => ScrCpy.ExecuteHome(Device.Name));
     }
 
     public void Start()
@@ -323,8 +333,8 @@ public class ScrCpyRunner : IDisposable
             Device,
             Device.DeviceWindow,
             _recordFile,
-            _isFullscreen,
-            _isGameMode);
+            Device.IsFullscreen,
+            Device.IsGameMode);
         LogMessage($"scrcpy args: {args}");
 
         var startInfo = new ProcessStartInfo
@@ -337,7 +347,7 @@ public class ScrCpyRunner : IDisposable
             Arguments = args
         };
 
-        if (!_isFullscreen)
+        if (!Device.IsFullscreen)
             startInfo.WindowStyle = ProcessWindowStyle.Minimized;
 
         return startInfo;
@@ -433,7 +443,7 @@ public class ScrCpyRunner : IDisposable
 
     private void SaveWindowPosition(IntPtr hwnd)
     {
-        if (hwnd == IntPtr.Zero || _isFullscreen) return;
+        if (hwnd == IntPtr.Zero || Device.IsFullscreen) return;
         var windowInfo = WindowInfoUtils.GetWindowInfo(hwnd);
         if (windowInfo?.State != FormWindowState.Normal) return;
 
