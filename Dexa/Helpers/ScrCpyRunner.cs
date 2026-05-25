@@ -72,6 +72,10 @@ public class ScrCpyRunner : IDisposable
                 ShowDesktop();
                 break;
 
+            case KeyboardInterceptorWinForms.VirtualKeys.F12:
+                ToggleAlwaysOnTop();
+                break;
+
             default:
                 LogMessage($"Otrzymano nieobsługiwany klawisz o kodzie {keyCode}");
                 break;
@@ -169,6 +173,21 @@ public class ScrCpyRunner : IDisposable
     {
         LogMessage("Wyświetlanie pulpitu na urządzeniu");
         Task.Run(() => ScrCpy.ExecuteHome(Device.Name));
+    }
+
+    public void ToggleAlwaysOnTop()
+    {
+        LogMessage("Przełączanie trybu zawsze na wierzchu");
+        Device.IsAlwaysOnTop = !Device.IsAlwaysOnTop;
+        ApplyAlwaysOnTop(_scrCpyHwnd);
+    }
+
+    private void ApplyAlwaysOnTop(IntPtr hwnd)
+    {
+        if (hwnd == IntPtr.Zero) return;
+        var insertAfter = Device.IsAlwaysOnTop ? NativeWindowHelper.HWND_TOPMOST : NativeWindowHelper.HWND_NOTOPMOST;
+        NativeWindowHelper.SetWindowPos(hwnd, insertAfter, 0, 0, 0, 0,
+            NativeWindowHelper.SWP_NOMOVE | NativeWindowHelper.SWP_NOSIZE | NativeWindowHelper.SWP_NOACTIVATE);
     }
 
     public void Start()
@@ -403,6 +422,8 @@ public class ScrCpyRunner : IDisposable
             LogMessage("Nie udało się aktywować okna scrcpy");
             TryAlternativeWindowActivation();
         }
+
+        ApplyAlwaysOnTop(_scrCpyHwnd);
     }
 
     private void TryAlternativeWindowActivation()

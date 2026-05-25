@@ -123,6 +123,7 @@ namespace Dexa.ViewModels
             ToggleRecordingCommand = new RelayCommand<Device>(d => ScrCpyRunners.ToggleRecording(d));
             ToggleOrientationCommand = new RelayCommand<Device>(d => ScrCpyRunners.ToggleOrientation(d));
             ShowDesktopCommand = new RelayCommand<Device>(d => ScrCpyRunners.ShowDesktop(d));
+            ToggleAlwaysOnTopCommand = new RelayCommand<Device>(d => ScrCpyRunners.ToggleAlwaysOnTop(d));
         }
 
         private void Devices_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -194,6 +195,7 @@ namespace Dexa.ViewModels
         public RelayCommand<Device> ToggleRecordingCommand { get; private set; }
         public RelayCommand<Device> ToggleOrientationCommand { get; private set; }
         public RelayCommand<Device> ShowDesktopCommand { get; private set; }
+        public RelayCommand<Device> ToggleAlwaysOnTopCommand { get; private set; }
 
         private void TurnOnDevice(Device device)
         {

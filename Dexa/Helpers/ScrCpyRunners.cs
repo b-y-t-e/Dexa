@@ -89,9 +89,10 @@ public static class ScrCpyRunners
             return _deviceRunners.FirstOrDefault(r => r.Device.Name == device.Name);
     }
 
-    public static void ToggleFullscreen(Device d)  => GetRunner(d)?.ToggleFullscreen();
-    public static void ToggleGameMode(Device d)    => GetRunner(d)?.ToggleGameMode();
-    public static void ToggleRecording(Device d)   => GetRunner(d)?.ToggleRecording();
-    public static void ToggleOrientation(Device d) => GetRunner(d)?.ToggleOrientation();
-    public static void ShowDesktop(Device d)       => GetRunner(d)?.ShowDesktop();
+    public static void ToggleFullscreen(Device d)    => GetRunner(d)?.ToggleFullscreen();
+    public static void ToggleGameMode(Device d)      => GetRunner(d)?.ToggleGameMode();
+    public static void ToggleRecording(Device d)     => GetRunner(d)?.ToggleRecording();
+    public static void ToggleOrientation(Device d)   => GetRunner(d)?.ToggleOrientation();
+    public static void ShowDesktop(Device d)         => GetRunner(d)?.ShowDesktop();
+    public static void ToggleAlwaysOnTop(Device d)   => GetRunner(d)?.ToggleAlwaysOnTop();
 }

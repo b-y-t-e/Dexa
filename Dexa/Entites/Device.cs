@@ -123,6 +123,14 @@ public class Device : INotifyPropertyChanged
         set => SetProperty(ref _isRecording, value);
     }
 
+    private bool _isAlwaysOnTop;
+    [JsonIgnore]
+    public bool IsAlwaysOnTop
+    {
+        get => _isAlwaysOnTop;
+        set => SetProperty(ref _isAlwaysOnTop, value);
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
