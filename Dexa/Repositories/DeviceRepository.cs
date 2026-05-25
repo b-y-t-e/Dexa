@@ -29,7 +29,7 @@ namespace Else.PhoneMirror.Repositories
                 return _devices.ToList();
         }
 
-        public static void Add(Device device)
+        public static void Add(Device device, bool save = true)
         {
             bool changed;
             lock (_lock)
@@ -38,7 +38,7 @@ namespace Else.PhoneMirror.Repositories
                 if (changed)
                     _devices.Add(device);
             }
-            if (changed) SaveToFile();
+            if (changed && save) SaveToFile();
         }
 
         public static void Remove(string deviceName)
@@ -54,7 +54,7 @@ namespace Else.PhoneMirror.Repositories
             if (changed) SaveToFile();
         }
 
-        public static void Update(Device device)
+        public static void Update(Device device, bool save = true)
         {
             lock (_lock)
             {
@@ -75,7 +75,7 @@ namespace Else.PhoneMirror.Repositories
                     _devices.Add(device);
                 }
             }
-            SaveToFile();
+            if (save) SaveToFile();
         }
 
         public static void UpdateRunData(Device? device)

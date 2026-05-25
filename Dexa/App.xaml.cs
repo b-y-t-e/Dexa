@@ -13,6 +13,7 @@ using Else.PhoneMirror.ViewModels;
 using Size = System.Windows.Size;
 using System.Net.NetworkInformation;
 using Velopack;
+using Dexa.Helpers;
 using MessageBox = System.Windows.MessageBox;
 
 namespace Dexa
@@ -56,6 +57,7 @@ namespace Dexa
                 return;
             }
 
+            FileLogger.Init();
             base.OnStartup(e);
 
             _trayWindow = new TrayWindow
@@ -154,14 +156,14 @@ namespace Dexa
                     if (isPingable) deviceFromRepo.MakeAvailable();
                     else deviceFromRepo.MakeNotAvailable();
                     deviceFromRepo.Update(adbDevice);
-                    DeviceRepository.Update(deviceFromRepo);
+                    DeviceRepository.Update(deviceFromRepo, save: false);
                 }
                 else
                 {
                     var newDevice = Device.Create(adbDevice);
                     if (isPingable) newDevice.MakeAvailable();
                     else newDevice.MakeNotAvailable();
-                    DeviceRepository.Add(newDevice);
+                    DeviceRepository.Add(newDevice, save: false);
                 }
             }
 
@@ -177,7 +179,7 @@ namespace Dexa
                 else
                     deviceFromRepo.MakeNotAvailable();
 
-                DeviceRepository.Update(deviceFromRepo);
+                DeviceRepository.Update(deviceFromRepo, save: false);
             }
 
             DeviceRepository.SaveToFile();
@@ -191,7 +193,7 @@ namespace Dexa
             try
             {
                 using var ping = new Ping();
-                var reply = ping.Send(ipAddress, 1000);
+                var reply = ping.Send(ipAddress, 300);
                 return reply?.Status == IPStatus.Success;
             }
             catch
@@ -206,29 +208,30 @@ namespace Dexa
 
             _trayWindow.Opacity = 0;
             _trayWindow.Show();
-            _trayWindow.UpdateLayout();
 
-            System.Drawing.Point cursorPosition =
-                System.Windows.Forms.Cursor.Position + new System.Drawing.Size(15, -20);
+            _trayWindow.Dispatcher.BeginInvoke(
+                System.Windows.Threading.DispatcherPriority.Render, () =>
+                {
+                    // Use the screen where the cursor is (the monitor with the tray icon),
+                    // not SystemParameters.WorkArea which always returns the primary monitor.
+                    var cursorPos = System.Windows.Forms.Cursor.Position;
+                    var screen = System.Windows.Forms.Screen.FromPoint(cursorPos);
+                    var workArea = screen.WorkingArea;
 
-            PresentationSource presentationSource = PresentationSource.FromVisual(_trayWindow);
-            if (presentationSource?.CompositionTarget != null)
-            {
-                Matrix transform = presentationSource.CompositionTarget.TransformFromDevice;
-                System.Windows.Point transformed =
-                    transform.Transform(new System.Windows.Point(cursorPosition.X, cursorPosition.Y));
+                    // Screen.WorkingArea is in physical pixels; convert to WPF DIPs.
+                    var source = PresentationSource.FromVisual(_trayWindow);
+                    double scaleX = 1.0, scaleY = 1.0;
+                    if (source?.CompositionTarget != null)
+                    {
+                        scaleX = source.CompositionTarget.TransformFromDevice.M11;
+                        scaleY = source.CompositionTarget.TransformFromDevice.M22;
+                    }
 
-                _trayWindow.Left = transformed.X - _trayWindow.ActualWidth;
-                _trayWindow.Top = transformed.Y - _trayWindow.ActualHeight;
-            }
-            else
-            {
-                _trayWindow.Left = cursorPosition.X - _trayWindow.ActualWidth;
-                _trayWindow.Top = cursorPosition.Y - _trayWindow.ActualHeight;
-            }
-
-            _trayWindow.Opacity = 1;
-            _trayWindow.Activate();
+                    _trayWindow.Left = workArea.Right * scaleX - _trayWindow.ActualWidth;
+                    _trayWindow.Top = workArea.Bottom * scaleY - _trayWindow.ActualHeight;
+                    _trayWindow.Opacity = 1;
+                    _trayWindow.Activate();
+                });
         }
 
         protected override void OnExit(ExitEventArgs e)
@@ -240,6 +243,7 @@ namespace Dexa
             KeyboardInterceptorWinForms.Stop();
 
             try { _mutex?.ReleaseMutex(); } catch { }
+            FileLogger.Dispose();
 
             base.OnExit(e);
         }

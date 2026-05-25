@@ -7,6 +7,7 @@ using System.Windows;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.Caching.Memory;
+using Dexa;
 using Dexa.Helpers;
 
 namespace Else.PhoneMirror.ViewModels;
@@ -159,23 +160,9 @@ public static class ScrCpy
         RunAdb($"-s {hardwareDevice} disconnect");
     }
 
-    /* public static Size GetScreenSize(string device)
-     {
-         // // adb -s 1234abcd exec-out wm size
-         var lines = RunAdb($"-s {device} exec-out wm size")
-             .Split(new[] { '\n', '\r', ' ' })
-             .ToList();
-
-         if (lines.Count >= 3)
-             return new Size(
-                 int.Parse(lines[2].Split('x')[0].Trim()),
-                 int.Parse(lines[2].Split('x')[1].Trim()));
-
-         return new Size();
-     }*/
-
     public static string BuildScrcpyArguments(
         Device HardwareDevice,
+        DeviceWindow? deviceWindow,
         string? RecordFilePath,
         bool isFullscreen,
         bool isGameMode)
@@ -186,14 +173,27 @@ public static class ScrCpy
         // Get settings from app
         var settings = AppSettings.Load();
 
+        var friendlyTitle = $"Dexa ⯽ {HardwareDevice.FriendlyName}";
+
         var args = $" -s {HardwareDevice.Name}" +
                    $" --stay-awake" +
-                   $" --shortcut-mod=rsuper";
+                   $" --shortcut-mod=rsuper" +
+                   $" --window-title \"{friendlyTitle}\"";
+
+        if (!isFullscreen && deviceWindow?.HasBounds() == true)
+        {
+            var bounds = WindowInfoUtils.ValidateWindowBounds(new Rectangle(
+                (int)deviceWindow.X, (int)deviceWindow.Y,
+                (int)deviceWindow.Width, (int)deviceWindow.Height));
+            args += $" --window-x={bounds.X} --window-y={bounds.Y}" +
+                    $" --window-width={bounds.Width} --window-height={bounds.Height}";
+        }
 
         if (settings.IsAspectRatioUnlocked)
         {
             args += " --no-window-aspect-ratio-lock";
             args += " --no-auto-resize";
+            args += " --auto-rotate-on-resize";
         }
 
         if (!settings.IsAudioEnabled)
@@ -221,17 +221,6 @@ public static class ScrCpy
                     $" -b 6M" +
                     $" --max-fps=60";
 
-        /* else if (isGameMode)
-             args += $" -m 1024" +
-                     $" -b 30M" +
-                     $" --max-fps=60";
-         else
-             args += $" -m 1280" +
-                     $" -b 8M" +
-                     $" --max-fps=60";*/
-
-        //args += " -m 1280";
-        //args += " -m 1920 -b 10M --max-fps=45";
         if (!string.IsNullOrEmpty(RecordFilePath))
             args += $" --record=\"{RecordFilePath}\"";
         return args;
@@ -262,61 +251,6 @@ public static class ScrCpy
         }
 
         return null;
-    }
-
-    static string RunScrCpy(string parameters)
-    {
-        try
-        {
-            string scrcpyPath = @"scrcpy\scrcpy.exe";
-            string arguments = parameters;
-
-            ProcessStartInfo processStartInfo = new ProcessStartInfo
-            {
-                FileName = scrcpyPath,
-                Arguments = arguments,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-
-            using (Process process = new Process())
-            {
-                process.StartInfo = processStartInfo;
-
-                // Uruchomienie procesu
-                process.EnableRaisingEvents = true;
-                process.Start();
-
-                if (!process.WaitForExit(300)) // Sprawdza co 100ms, czy proces się zakończył.
-                    process.CloseMainWindow();
-
-                // Odczytanie wyjścia i błędów
-                string output = process.StandardOutput.ReadToEnd();
-                string error = process.StandardError.ReadToEnd();
-
-                // Wyświetlenie wyników w razie potrzeby
-                if (!string.IsNullOrEmpty(output))
-                {
-                    //Console.WriteLine("Output:");
-                    //Console.WriteLine(output);
-                }
-
-                if (!string.IsNullOrEmpty(error))
-                {
-                    //Console.WriteLine("Error:");
-                    //Console.WriteLine(error);
-                }
-
-                return output;
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Wystąpił błąd: {ex.Message}");
-            return "";
-        }
     }
 
     public static string RunAdb(String parameters, bool wait = true)
