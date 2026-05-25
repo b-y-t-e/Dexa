@@ -12,6 +12,7 @@ public class ScrCpyRunner : IDisposable
     private Process? _scrCpyProcess;
     private IntPtr _scrCpyHwnd;
     private int _restartPending;
+    private volatile bool _skipPositionSave;
     private string? _recordFile;
     private Stopwatch? _stopwatch;
 
@@ -86,6 +87,8 @@ public class ScrCpyRunner : IDisposable
     public void ToggleFullscreen()
     {
         LogMessage("Przełączanie trybu pełnoekranowego");
+        if (Device.IsFullscreen)
+            _skipPositionSave = true;
         Device.IsFullscreen = !Device.IsFullscreen;
         ScheduleRestart();
     }
@@ -103,8 +106,12 @@ public class ScrCpyRunner : IDisposable
             return;
         Task.Run(() =>
         {
-            try { DisposeProcess(); }
-            finally { Interlocked.Exchange(ref _restartPending, 0); }
+            try { DisposeProcess(clearRecording: false, forceKill: true); }
+            finally
+            {
+                _skipPositionSave = false;
+                Interlocked.Exchange(ref _restartPending, 0);
+            }
         });
     }
 
@@ -114,7 +121,7 @@ public class ScrCpyRunner : IDisposable
         {
             this._recordFile = null;
             Device.IsRecording = false;
-            DisposeProcess(stopRecording: false);
+            DisposeProcess(clearRecording: false, forceKill: false);
         }
         else
         {
@@ -135,7 +142,7 @@ public class ScrCpyRunner : IDisposable
 
                 this._recordFile = saveFileDialog.FileName;
                 Device.IsRecording = true;
-                Task.Run(() => DisposeProcess(stopRecording: false));
+                Task.Run(() => DisposeProcess(clearRecording: false, forceKill: false));
             });
         }
     }
@@ -429,21 +436,21 @@ public class ScrCpyRunner : IDisposable
         }
     }
 
-    private void DisposeProcess(bool stopRecording = true)
+    private void DisposeProcess(bool clearRecording = true, bool forceKill = true)
     {
         var (scrCpyHwnd, scrCpyProcess) = RemoveReferencesToProcess();
         SaveWindowPosition(scrCpyHwnd);
         DeviceRepository.UpdateRunData(Device);
-        if (stopRecording)
+        if (clearRecording)
             StopRecording();
         AudioPause(scrCpyProcess);
         UnregisterWindowFromKeyboardEvents(scrCpyHwnd);
-        CloseScrcpyProcess(scrCpyProcess, stopRecording);
+        CloseScrcpyProcess(scrCpyProcess, forceKill);
     }
 
     private void SaveWindowPosition(IntPtr hwnd)
     {
-        if (hwnd == IntPtr.Zero || Device.IsFullscreen) return;
+        if (hwnd == IntPtr.Zero || Device.IsFullscreen || _skipPositionSave) return;
         var windowInfo = WindowInfoUtils.GetWindowInfo(hwnd);
         if (windowInfo?.State != FormWindowState.Normal) return;
 
