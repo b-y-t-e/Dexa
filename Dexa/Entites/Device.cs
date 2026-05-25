@@ -135,7 +135,13 @@ public class Device : INotifyPropertyChanged
 
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        var handler = PropertyChanged;
+        if (handler == null) return;
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher != null && !dispatcher.CheckAccess())
+            dispatcher.BeginInvoke(() => handler(this, new PropertyChangedEventArgs(propertyName)));
+        else
+            handler(this, new PropertyChangedEventArgs(propertyName));
     }
 
     protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
