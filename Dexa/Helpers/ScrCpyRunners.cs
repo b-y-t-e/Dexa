@@ -7,6 +7,7 @@ public static class ScrCpyRunners
 {
     static private readonly object _lock = new object();
     static private readonly List<ScrCpyRunner> _deviceRunners = new List<ScrCpyRunner>();
+    static private volatile bool _isShuttingDown;
 
     public static int ActiveCount
     {
@@ -34,6 +35,12 @@ public static class ScrCpyRunners
         var newRunners = toAdd.Select(d => new ScrCpyRunner(d)).ToList();
         lock (_lock)
         {
+            if (_isShuttingDown)
+            {
+                foreach (var runner in newRunners)
+                    runner.Dispose();
+                return;
+            }
             foreach (var runner in newRunners)
             {
                 if (!_deviceRunners.Any(r => r.Device.Name == runner.Device.Name))
@@ -52,6 +59,7 @@ public static class ScrCpyRunners
         List<ScrCpyRunner> runners;
         lock (_lock)
         {
+            _isShuttingDown = true;
             runners = _deviceRunners.ToList();
             _deviceRunners.Clear();
         }
