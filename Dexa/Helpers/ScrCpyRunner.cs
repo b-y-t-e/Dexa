@@ -22,6 +22,7 @@ public class ScrCpyRunner : IDisposable
     public ScrCpyRunner(Device device)
     {
         Device = device;
+        KeyboardInterceptorWinForms.KeyboardEvent += OnKeyboardEvent;
         Start();
     }
 
@@ -401,7 +402,6 @@ public class ScrCpyRunner : IDisposable
     private void RegisterWindowForKeyboardEvents()
     {
         KeyboardInterceptorWinForms.AddWindowHandle(_scrCpyHwnd);
-        KeyboardInterceptorWinForms.KeyboardEvent += OnKeyboardEvent;
     }
 
     private void ActivateWindow()
@@ -522,10 +522,7 @@ public class ScrCpyRunner : IDisposable
     private void UnregisterWindowFromKeyboardEvents(IntPtr scrCpyHwnd)
     {
         if (scrCpyHwnd != IntPtr.Zero)
-        {
             KeyboardInterceptorWinForms.RemoveWindowHandle(scrCpyHwnd);
-            KeyboardInterceptorWinForms.KeyboardEvent -= OnKeyboardEvent;
-        }
     }
 
     private void CloseScrcpyProcess(Process? _scrCpyProcess, Boolean waitForExit = true)
@@ -589,12 +586,6 @@ public class ScrCpyRunner : IDisposable
     {
         DisposeProcess();
         Stop();
-        UnregisterEvents();
-    }
-
-
-    private void UnregisterEvents()
-    {
         KeyboardInterceptorWinForms.KeyboardEvent -= OnKeyboardEvent;
     }
 }

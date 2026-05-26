@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Else.PhoneMirror.ViewModels;
@@ -76,7 +77,7 @@ public static class KeyboardInterceptorWinForms
         public KBDLLHOOKSTRUCT hookStruct;
     }
 
-    static private readonly List<KeyParam> _keyParams = new List<KeyParam>();
+    static private readonly ConcurrentQueue<KeyParam> _keyParams = new();
 
     static private readonly object _handleLock = new object();
     static private readonly HashSet<IntPtr> _monitoredWindowHandles = new HashSet<IntPtr>();
@@ -124,32 +125,17 @@ public static class KeyboardInterceptorWinForms
     {
         while (!ct.IsCancellationRequested)
         {
-            Thread.Sleep(5);
-
-            KeyParam? key = null;
-            lock (_keyParams)
+            if (!_keyParams.TryDequeue(out var key))
             {
-                key = _keyParams.FirstOrDefault();
-                if (key != null)
-                    _keyParams.Remove(key);
-                else
-                    continue;
+                Thread.Sleep(5);
+                continue;
             }
 
             try
             {
-                if (key.nCode >= 0)
-                {
-                    int msg = key.wParam.ToInt32();
-                    bool isKeyDown = (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN);
-                    bool isSystemKey = (msg == WM_SYSKEYDOWN || msg == WM_SYSKEYUP);
-
-                    if (isKeyDown)
-                    {
-                        int vkCode = (int)key.hookStruct.vkCode;
-                        OnKeyEvent(vkCode, isKeyDown, isSystemKey);
-                    }
-                }
+                int vkCode = (int)key.hookStruct.vkCode;
+                bool isSystemKey = (key.wParam.ToInt32() == WM_SYSKEYDOWN);
+                OnKeyEvent(vkCode, true, isSystemKey);
             }
             catch (Exception ex)
             {
@@ -160,14 +146,18 @@ public static class KeyboardInterceptorWinForms
 
     static private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
     {
-        lock (_keyParams)
+        if (nCode >= 0)
         {
-            _keyParams.Add(new KeyParam
+            int msg = wParam.ToInt32();
+            if (msg == WM_KEYDOWN || msg == WM_SYSKEYDOWN)
             {
-                nCode = nCode,
-                wParam = wParam,
-                hookStruct = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam)
-            });
+                _keyParams.Enqueue(new KeyParam
+                {
+                    nCode = nCode,
+                    wParam = wParam,
+                    hookStruct = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam)
+                });
+            }
         }
 
         return CallNextHookEx(_hookID, nCode, wParam, lParam);
