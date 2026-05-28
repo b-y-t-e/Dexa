@@ -12,7 +12,6 @@ public class ScrCpyRunner : IDisposable
     private Process? _scrCpyProcess;
     private IntPtr _scrCpyHwnd;
     private int _restartPending;
-    private volatile bool _skipPositionSave;
     private string? _recordFile;
     private Stopwatch? _stopwatch;
 
@@ -50,7 +49,8 @@ public class ScrCpyRunner : IDisposable
                 break;
 
             case KeyboardInterceptorWinForms.VirtualKeys.F11:
-                ToggleFullscreen();
+                // F11 already forwarded to scrcpy via hook passthrough — just sync state
+                Device.IsFullscreen = !Device.IsFullscreen;
                 break;
 
             case KeyboardInterceptorWinForms.VirtualKeys.F9:
@@ -92,10 +92,18 @@ public class ScrCpyRunner : IDisposable
     public void ToggleFullscreen()
     {
         LogMessage("Przełączanie trybu pełnoekranowego");
-        if (Device.IsFullscreen)
-            _skipPositionSave = true;
         Device.IsFullscreen = !Device.IsFullscreen;
-        ScheduleRestart();
+        PostF11ToScrcpyWindow();
+    }
+
+    private void PostF11ToScrcpyWindow()
+    {
+        if (_scrCpyHwnd == IntPtr.Zero) return;
+        const uint WM_KEYDOWN = 0x0100;
+        const uint WM_KEYUP = 0x0101;
+        const int VK_F11 = 0x7A;
+        NativeWindowHelper.PostMessage(_scrCpyHwnd, WM_KEYDOWN, (IntPtr)VK_F11, (IntPtr)0x00570001);
+        NativeWindowHelper.PostMessage(_scrCpyHwnd, WM_KEYUP,   (IntPtr)VK_F11, (IntPtr)0xC0570001);
     }
 
     public void ToggleGameMode()
@@ -114,7 +122,6 @@ public class ScrCpyRunner : IDisposable
             try { DisposeProcess(clearRecording: false, forceKill: true); }
             finally
             {
-                _skipPositionSave = false;
                 Interlocked.Exchange(ref _restartPending, 0);
             }
         });
@@ -471,7 +478,7 @@ public class ScrCpyRunner : IDisposable
 
     private void SaveWindowPosition(IntPtr hwnd)
     {
-        if (hwnd == IntPtr.Zero || Device.IsFullscreen || _skipPositionSave) return;
+        if (hwnd == IntPtr.Zero || Device.IsFullscreen) return;
         var windowInfo = WindowInfoUtils.GetWindowInfo(hwnd);
         if (windowInfo?.State != FormWindowState.Normal) return;
 
