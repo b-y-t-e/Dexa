@@ -137,6 +137,7 @@
                                     <UniformGrid Rows="1" Margin="0,4,0,0"
                                                  Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
                                         <Button Margin="0,0,2,0" Padding="4,5"
+                                                ToolTip="Pełny ekran (F11)"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleFullscreenCommand}"
                                                 CommandParameter="{Binding}"
                                                 BorderBrush="{Binding IsFullscreen, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}">
@@ -144,6 +145,7 @@
                                                        Foreground="{Binding IsFullscreen, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"/>
                                         </Button>
                                         <Button Margin="0,0,2,0" Padding="4,5"
+                                                ToolTip="Tryb gry (F9)"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleGameModeCommand}"
                                                 CommandParameter="{Binding}"
                                                 BorderBrush="{Binding IsGameMode, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}">
@@ -151,24 +153,28 @@
                                                        Foreground="{Binding IsGameMode, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"/>
                                         </Button>
                                         <Button Margin="0,0,2,0" Padding="4,5"
+                                                ToolTip="Nagrywanie"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleRecordingCommand}"
                                                 CommandParameter="{Binding}"
                                                 BorderBrush="{Binding IsRecording, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#ff4444_#66c0f4}">
                                             <TextBlock Margin="0,5" FontSize="12" FontFamily="Segoe MDL2 Assets"
-                                                       Text="{Binding IsRecording, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=&#xE71A;_&#xE93D;}"
+                                                       Text="{Binding IsRecording, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=&#xE71A;_&#xE714;}"
                                                        Foreground="{Binding IsRecording, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#ff4444_#66c0f4}"/>
                                         </Button>
                                         <Button Margin="0,0,2,0" Padding="4,5"
+                                                ToolTip="Obróć ekran (F10)"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleOrientationCommand}"
                                                 CommandParameter="{Binding}">
                                             <TextBlock Margin="0,5" FontSize="12" FontFamily="Segoe MDL2 Assets" Text="&#xE7AD;"/>
                                         </Button>
                                         <Button Margin="0,0,2,0" Padding="4,5"
+                                                ToolTip="Pokaż pulpit"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ShowDesktopCommand}"
                                                 CommandParameter="{Binding}">
                                             <TextBlock Margin="0,5" FontSize="12" FontFamily="Segoe MDL2 Assets" Text="&#xE80F;"/>
                                         </Button>
                                         <Button Padding="4,5"
+                                                ToolTip="Zawsze na wierzchu"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleAlwaysOnTopCommand}"
                                                 CommandParameter="{Binding}"
                                                 BorderBrush="{Binding IsAlwaysOnTop, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}">
