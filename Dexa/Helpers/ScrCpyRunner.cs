@@ -14,6 +14,10 @@ public class ScrCpyRunner : IDisposable
     private int _restartPending;
     private string? _recordFile;
     private Stopwatch? _stopwatch;
+    private int _reconnectAttempts;
+
+    private const int ScrcpyExitDisconnected = 2;
+    private const int MaxReconnectAttempts = 6;
 
     public bool IsRunning { get; private set; }
     public Device Device { get; }
@@ -243,6 +247,7 @@ public class ScrCpyRunner : IDisposable
                     else
                     {
                         retryCount = 0;
+                        _reconnectAttempts = 0;
                     }
 
                     ZmieńIkonęProcesu();
@@ -252,8 +257,31 @@ public class ScrCpyRunner : IDisposable
                         NotifyDeviceStatus();
                     });
 
-                    if (CheckIfScrCpyIsClosed())
+                    // Odczytaj exit code zanim proces zostanie zdisposowany
+                    var exitCode = (_scrCpyProcess?.HasExited == true) ? _scrCpyProcess.ExitCode : -1;
+
+                    if (!IsRunning)
                         break;
+
+                    if (exitCode == ScrcpyExitDisconnected && Device?.IsRunning == true)
+                    {
+                        _reconnectAttempts++;
+                        if (_reconnectAttempts > MaxReconnectAttempts)
+                        {
+                            LogMessage($"Auto-reconnect: przekroczono limit prób ({MaxReconnectAttempts}), wyłączam urządzenie");
+                            Stop();
+                            break;
+                        }
+                        LogMessage($"Auto-reconnect: próba {_reconnectAttempts}/{MaxReconnectAttempts}");
+                        PrepareReconnect();
+                        DisposeProcess(clearRecording: false, forceKill: true);
+                        continue;
+                    }
+                    else
+                    {
+                        Stop();
+                        break;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -280,16 +308,32 @@ public class ScrCpyRunner : IDisposable
         }
     }
 
-    private bool CheckIfScrCpyIsClosed()
+    private void PrepareReconnect()
     {
-        if (_scrCpyProcess != null &&
-            _scrCpyProcess.HasExited == true)
-        {
-            Stop();
-            return true;
-        }
+        var backoffSeconds = Math.Min(_reconnectAttempts, 4);
+        LogMessage($"Auto-reconnect: oczekiwanie {backoffSeconds}s przed ponownym połączeniem");
+        Thread.Sleep(TimeSpan.FromSeconds(backoffSeconds));
 
-        return false;
+        if (!Device.IsRemoteConnection)
+            return;
+
+        // WiFi: odśwież połączenie adb przed ponownym startem scrcpy
+        LogMessage($"Auto-reconnect: adb connect {Device.Name}");
+        ScrCpy.RunAdb($"connect {Device.Name}");
+
+        // Poczekaj aż urządzenie pojawi się w adb devices (max ~10s)
+        var deadline = Stopwatch.StartNew();
+        while (deadline.Elapsed < TimeSpan.FromSeconds(10) && IsRunning)
+        {
+            var online = ScrCpy.GetAllDevices().Any(d => d.Name == Device.Name);
+            if (online)
+            {
+                LogMessage($"Auto-reconnect: urządzenie {Device.Name} ponownie online");
+                return;
+            }
+            Thread.Sleep(500);
+        }
+        LogMessage($"Auto-reconnect: urządzenie {Device.Name} niedostępne po 10s, próba startu scrcpy mimo to");
     }
 
     private void Stop()
