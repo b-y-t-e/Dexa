@@ -114,8 +114,8 @@
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.TurnOnDeviceCommand}"
                                                 CommandParameter="{Binding}"
                                                 BorderBrush="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}">
-                                            <TextBlock Margin="10,4" FontSize="13" Text="{Binding FriendlyName}"
-                                                       Foreground="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"/>
+                                            <TextBlock Margin="10,4" FontSize="13" FontWeight="Medium" Text="{Binding FriendlyName}"
+                                                       Foreground="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#ffffff_#c8dff0}"/>
                                         </Button>
                                         <Button Grid.Column="1" FontFamily="Segoe MDL2 Assets" Margin="4,0,0,0"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ConnectWirelessCommand}"
@@ -123,7 +123,7 @@
                                                 BorderBrush="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"
                                                 Visibility="{Binding CanBeRemoteConnected, Converter={StaticResource BooleanToVisibilityConverter}}">
                                             <TextBlock Margin="10,3" Text="&#xE703;"
-                                                       Foreground="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"/>
+                                                       Foreground="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#ffffff_#c8dff0}"/>
                                         </Button>
                                         <Button Grid.Column="1" FontFamily="Segoe MDL2 Assets" Margin="4,0,0,0"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.DisconnectWirelessCommand}"
@@ -131,48 +131,48 @@
                                                 BorderBrush="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"
                                                 Visibility="{Binding IsRemoteConnection, Converter={StaticResource BooleanToVisibilityConverter}}">
                                             <TextBlock Margin="10,3" Text="&#xE711;"
-                                                       Foreground="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"/>
+                                                       Foreground="{Binding IsRunning, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#ffffff_#c8dff0}"/>
                                         </Button>
                                     </Grid>
                                     <UniformGrid Rows="1" Margin="0,4,0,0"
                                                  Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                        <Button Margin="0,0,2,0" Padding="4,3"
+                                        <Button Margin="0,0,2,0" Padding="4,5"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleFullscreenCommand}"
                                                 CommandParameter="{Binding}"
                                                 BorderBrush="{Binding IsFullscreen, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}">
-                                            <TextBlock FontSize="13" Text="FULL"
+                                            <TextBlock FontSize="12" FontFamily="Segoe MDL2 Assets" Text="&#xE740;"
                                                        Foreground="{Binding IsFullscreen, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"/>
                                         </Button>
-                                        <Button Margin="0,0,2,0" Padding="4,3"
+                                        <Button Margin="0,0,2,0" Padding="4,5"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleGameModeCommand}"
                                                 CommandParameter="{Binding}"
                                                 BorderBrush="{Binding IsGameMode, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}">
-                                            <TextBlock FontSize="13" Text="GAME"
+                                            <TextBlock FontSize="12" FontFamily="Segoe MDL2 Assets" Text="&#xE7FC;"
                                                        Foreground="{Binding IsGameMode, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"/>
                                         </Button>
-                                        <Button Margin="0,0,2,0" Padding="4,3"
+                                        <Button Margin="0,0,2,0" Padding="4,5"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleRecordingCommand}"
                                                 CommandParameter="{Binding}"
                                                 BorderBrush="{Binding IsRecording, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#ff4444_#66c0f4}">
-                                            <TextBlock FontSize="13"
-                                                       Text="{Binding IsRecording, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=●__REC_REC}"
+                                            <TextBlock FontSize="12" FontFamily="Segoe MDL2 Assets"
+                                                       Text="{Binding IsRecording, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=&#xE71A;_&#xE93D;}"
                                                        Foreground="{Binding IsRecording, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#ff4444_#66c0f4}"/>
                                         </Button>
-                                        <Button Margin="0,0,2,0" Padding="4,3"
+                                        <Button Margin="0,0,2,0" Padding="4,5"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleOrientationCommand}"
                                                 CommandParameter="{Binding}">
-                                            <TextBlock FontSize="13" Text="↻"/>
+                                            <TextBlock FontSize="12" FontFamily="Segoe MDL2 Assets" Text="&#xE7AD;"/>
                                         </Button>
-                                        <Button Margin="0,0,2,0" Padding="4,3"
+                                        <Button Margin="0,0,2,0" Padding="4,5"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ShowDesktopCommand}"
                                                 CommandParameter="{Binding}">
-                                            <TextBlock FontSize="13" Text="⌂"/>
+                                            <TextBlock FontSize="12" FontFamily="Segoe MDL2 Assets" Text="&#xE80F;"/>
                                         </Button>
-                                        <Button Padding="4,3"
+                                        <Button Padding="4,5"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleAlwaysOnTopCommand}"
                                                 CommandParameter="{Binding}"
                                                 BorderBrush="{Binding IsAlwaysOnTop, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}">
-                                            <TextBlock FontSize="13" Text="TOP"
+                                            <TextBlock FontSize="12" FontFamily="Segoe MDL2 Assets" Text="&#xE840;"
                                                        Foreground="{Binding IsAlwaysOnTop, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"/>
                                         </Button>
                                     </UniformGrid>
