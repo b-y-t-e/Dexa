@@ -19,7 +19,7 @@ REM Create new version string
 set NEW_VERSION=%MAJOR%.%MINOR%.%PATCH%
 
 REM Update version.txt with new version
-echo %NEW_VERSION% > version.txt
+echo %NEW_VERSION%> version.txt
 
 echo Updated version to: %NEW_VERSION%
 set VERSION=%NEW_VERSION%
@@ -56,8 +56,8 @@ dir Releases
 REM Upload to FTP server
 echo Uploading files to FTP server...
 
-set FTP_BASE=ftp://***REMOVED***/dexa/
-set FTP_USER=***REMOVED***:***REMOVED***
+REM Load credentials from .env
+for /f "usebackq tokens=1,* delims==" %%A in (".env") do set %%A=%%B
 set UPLOAD_OK=1
 
 curl -s -T "Releases\Else.Dexa-win-Setup.exe" --user %FTP_USER% "%FTP_BASE%Else.Dexa-win-Setup.exe"
@@ -80,6 +80,17 @@ if %errorlevel% neq 0 set UPLOAD_OK=0
 
 if %UPLOAD_OK% equ 1 (
     echo Files uploaded successfully to FTP server!
+
+    REM Delete all old nupkg files from FTP
+    echo Cleaning up old packages from FTP...
+    curl -s --user %FTP_USER% --list-only "%FTP_BASE%" > _ftp_list.tmp
+    for /f "tokens=*" %%F in ('findstr /i "full.nupkg" _ftp_list.tmp') do (
+        if /i not "%%F"=="Else.Dexa-%VERSION%-full.nupkg" (
+            echo Deleting %%F ...
+            curl -s --user %FTP_USER% "%FTP_BASE%" -Q "-DELE %%F" -o nul
+        )
+    )
+    del _ftp_list.tmp 2>nul
 ) else (
     echo FTP upload failed for one or more files!
 )
