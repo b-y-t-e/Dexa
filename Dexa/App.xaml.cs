@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -20,9 +20,20 @@ namespace Dexa
 {
     public partial class App : System.Windows.Application
     {
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+        private static extern uint SetErrorMode(uint uMode);
+
+        private const uint SEM_FAILCRITICALERRORS = 0x0001;
+        private const uint SEM_NOGPFAULTERRORBOX = 0x0002;
+        private const uint SEM_NOOPENFILEERRORBOX = 0x8000;
+
         [STAThread]
         private static void Main(string[] args)
         {
+            // Wycisza systemowe okna błędów (np. adb.exe 0xc0000142 przy zamykaniu systemu).
+            // Tryb błędów jest dziedziczony przez procesy potomne — adb.exe i scrcpy.exe też go dostają.
+            SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOGPFAULTERRORBOX | SEM_NOOPENFILEERRORBOX);
+
             try
             {
                 VelopackApp.Build().Run();
@@ -60,6 +71,14 @@ namespace Dexa
             FileLogger.Init();
             base.OnStartup(e);
 
+            // Przy zamykaniu systemu / wylogowaniu przerwij polling adb —
+            // startowanie procesów w trakcie shutdownu kończy się błędem 0xc0000142.
+            SessionEnding += (_, args) =>
+            {
+                FileLogger.Log($"SessionEnding ({args.ReasonSessionEnding}) — zatrzymywanie watchera");
+                _isAppClosed = true;
+            };
+
             _trayWindow = new TrayWindow
             {
                 DataContext = new TrayWindowViewModel(),
@@ -94,7 +113,8 @@ namespace Dexa
         {
             try
             {
-                var mgr = new UpdateManager("https://else.net.pl/dexa/");
+                var updateUrl = Environment.GetEnvironmentVariable("DEXA_UPDATE_URL") ?? "https://else.net.pl/dexa/";
+                var mgr = new UpdateManager(updateUrl);
                 var newVersion = mgr.CheckForUpdates();
                 if (newVersion == null)
                     return;
