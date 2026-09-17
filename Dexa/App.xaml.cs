@@ -52,6 +52,7 @@ namespace Dexa
         private Mutex _mutex;
 
         private TrayWindow? _trayWindow;
+        private UpdateService? _updateService;
         private TaskbarIcon? _trayIcon;
 
         private volatile bool _isAppClosed;
@@ -79,9 +80,11 @@ namespace Dexa
                 _isAppClosed = true;
             };
 
+            _updateService = new UpdateService();
+
             _trayWindow = new TrayWindow
             {
-                DataContext = new TrayWindowViewModel(),
+                DataContext = new TrayWindowViewModel(_updateService),
                 WindowStartupLocation = WindowStartupLocation.Manual
             };
 
@@ -106,26 +109,7 @@ namespace Dexa
 
             ThreadPool.QueueUserWorkItem(DeviceWatcherThread);
 
-            Task.Run(UpdateMyApp);
-        }
-
-        private static void UpdateMyApp()
-        {
-            try
-            {
-                var updateUrl = Environment.GetEnvironmentVariable("DEXA_UPDATE_URL") ?? "https://else.net.pl/dexa/";
-                var mgr = new UpdateManager(updateUrl);
-                var newVersion = mgr.CheckForUpdates();
-                if (newVersion == null)
-                    return;
-
-                mgr.DownloadUpdates(newVersion);
-                mgr.ApplyUpdatesAndRestart(newVersion);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Update check failed: {ex.Message}");
-            }
+            _updateService.StartPeriodicCheck();
         }
 
         private void DeviceWatcherThread(object? _)
@@ -257,6 +241,7 @@ namespace Dexa
         protected override void OnExit(ExitEventArgs e)
         {
             _isAppClosed = true;
+            _updateService?.Dispose();
             _trayIcon?.Dispose();
             ScrCpyRunners.TurnOff();
 

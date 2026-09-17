@@ -31,6 +31,14 @@ Pełna instrukcja (setup meson, zależności): patrz `D:\work\sources\scrcpy-src
 **Krytyczne:** scrcpy musi być zbudowane z `-Dportable=true` — bez tego szuka `scrcpy-server`
 pod ścieżką instalacji MSYS2 zamiast obok `scrcpy.exe`.
 
+## Release i auto-update
+
+- `python deploy.py` — podbija patch w `version.txt`, commituje, pushuje tag `vX.Y.Z`
+- `.github/workflows/release.yml` — na tagu: `dotnet publish` → `vpk pack --packId Dexa` → GitHub Release
+  (`Dexa-win-Setup.exe`, `*-full.nupkg`, `releases.win.json`)
+- `Helpers/UpdateService` — Velopack `GithubSource` (repo musi być publiczne), sprawdza co 10 min,
+  pobiera w tle; restart dopiero po kliknięciu „UPDATE TO vX” w oknie tray (nie przerywa mirroringu)
+
 ## Architektura
 
 ```

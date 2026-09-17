@@ -48,6 +48,10 @@ namespace Dexa.ViewModels
         }
 
         private AppSettings _settings;
+        private readonly UpdateService _updateService;
+
+        public bool HasUpdate => _updateService.HasUpdate;
+        public string UpdateButtonText => $"UPDATE TO v{_updateService.NewVersion}";
 
         private bool _isKeyboardEnabled;
         public bool IsKeyboardEnabled
@@ -97,8 +101,15 @@ namespace Dexa.ViewModels
             }
         }
 
-        public TrayWindowViewModel()
+        public TrayWindowViewModel(UpdateService updateService)
         {
+            _updateService = updateService;
+            _updateService.UpdateAvailable += () =>
+            {
+                OnPropertyChanged(nameof(HasUpdate));
+                OnPropertyChanged(nameof(UpdateButtonText));
+            };
+
             _settings = AppSettings.Load();
             _isKeyboardEnabled = _settings.IsKeyboardEnabled;
             _isScreenOffEnabled = _settings.IsScreenOffEnabled;
@@ -111,6 +122,7 @@ namespace Dexa.ViewModels
 
             RefreshDevicesCommand = new RelayCommand(RefreshDevices);
             ExitApplicationCommand = new RelayCommand(ExitApplication);
+            ApplyUpdateCommand = new RelayCommand(_updateService.ApplyUpdate);
             TurnOnDeviceCommand = new RelayCommand<Device>(TurnOnDevice);
             ConnectWirelessCommand = new RelayCommand<Device>(ConnectWireless);
             DisconnectWirelessCommand = new RelayCommand<Device>(DisconnectWireless);
@@ -159,6 +171,7 @@ namespace Dexa.ViewModels
         public RelayCommand ToggleAspectRatioCommand { get; private set; }
         public RelayCommand ToggleAudioCommand { get; private set; }
         public RelayCommand ExitApplicationCommand { get; private set; }
+        public RelayCommand ApplyUpdateCommand { get; private set; }
 
         private void ExitApplication()
         {

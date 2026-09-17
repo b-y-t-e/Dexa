@@ -227,6 +227,13 @@
                 </Button>
             </UniformGrid>
 
+            <Button Command="{Binding ApplyUpdateCommand}" Margin="0,0,0,5"
+                    ToolTip="A new version has been downloaded. Click to restart Dexa and install it."
+                    BorderBrush="#00ff90"
+                    Visibility="{Binding HasUpdate, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <TextBlock Margin="10, 3" Text="{Binding UpdateButtonText}" Foreground="#00ff90" />
+            </Button>
+
             <Button Command="{Binding ExitApplicationCommand}">
                 <TextBlock Margin="10, 3" Text="Exit" />
             </Button>
