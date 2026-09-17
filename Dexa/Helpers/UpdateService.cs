@@ -11,7 +11,7 @@ namespace Dexa.Helpers;
 /// </summary>
 public sealed class UpdateService : IDisposable
 {
-    private const string GithubRepo = "https://github.com/b-y-t-e/Dexa-rework";
+    private const string GithubRepo = "https://github.com/b-y-t-e/Dexa";
     private static readonly TimeSpan CheckInterval = TimeSpan.FromMinutes(10);
 
     private readonly DispatcherTimer _timer;
