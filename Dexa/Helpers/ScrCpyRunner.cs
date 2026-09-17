@@ -145,11 +145,11 @@ public class ScrCpyRunner : IDisposable
             {
                 var saveFileDialog = new SaveFileDialog
                 {
-                    Title = "Zapisz plik",
+                    Title = "Save recording",
                     FileName =
                         $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{string.Join("_", Device.FriendlyName.Split(Path.GetInvalidFileNameChars()))}.mp4",
                     DefaultExt = ".mp4",
-                    Filter = "Pliki wideo|*.mp4;*.mkv|Wszystkie pliki|*.*"
+                    Filter = "Video files|*.mp4;*.mkv|All files|*.*"
                 };
 
                 var result = saveFileDialog.ShowDialog();

@@ -137,7 +137,7 @@
                                     <UniformGrid Rows="1" Margin="0,4,0,0"
                                                  Visibility="{Binding IsRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
                                         <Button Margin="0,0,2,0" Padding="4,5"
-                                                ToolTip="Pełny ekran (F11)"
+                                                ToolTip="Fullscreen (F11)"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleFullscreenCommand}"
                                                 CommandParameter="{Binding}"
                                                 BorderBrush="{Binding IsFullscreen, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}">
@@ -145,7 +145,7 @@
                                                        Foreground="{Binding IsFullscreen, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"/>
                                         </Button>
                                         <Button Margin="0,0,2,0" Padding="4,5"
-                                                ToolTip="Tryb gry (F9)"
+                                                ToolTip="Game mode (F9)"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleGameModeCommand}"
                                                 CommandParameter="{Binding}"
                                                 BorderBrush="{Binding IsGameMode, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}">
@@ -153,7 +153,7 @@
                                                        Foreground="{Binding IsGameMode, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}"/>
                                         </Button>
                                         <Button Margin="0,0,2,0" Padding="4,5"
-                                                ToolTip="Nagrywanie"
+                                                ToolTip="Record screen"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleRecordingCommand}"
                                                 CommandParameter="{Binding}"
                                                 BorderBrush="{Binding IsRecording, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#ff4444_#66c0f4}">
@@ -162,19 +162,19 @@
                                                        Foreground="{Binding IsRecording, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#ff4444_#66c0f4}"/>
                                         </Button>
                                         <Button Margin="0,0,2,0" Padding="4,5"
-                                                ToolTip="Obróć ekran (F10)"
+                                                ToolTip="Rotate phone screen (F10)"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleOrientationCommand}"
                                                 CommandParameter="{Binding}">
                                             <TextBlock Margin="0,5" FontSize="12" FontFamily="Segoe MDL2 Assets" Text="&#xE7AD;"/>
                                         </Button>
                                         <Button Margin="0,0,2,0" Padding="4,5"
-                                                ToolTip="Pokaż pulpit"
+                                                ToolTip="Go to phone home screen"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ShowDesktopCommand}"
                                                 CommandParameter="{Binding}">
                                             <TextBlock Margin="0,5" FontSize="12" FontFamily="Segoe MDL2 Assets" Text="&#xE80F;"/>
                                         </Button>
                                         <Button Padding="4,5"
-                                                ToolTip="Zawsze na wierzchu"
+                                                ToolTip="Always on top"
                                                 Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}, Path=DataContext.ToggleAlwaysOnTopCommand}"
                                                 CommandParameter="{Binding}"
                                                 BorderBrush="{Binding IsAlwaysOnTop, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#00ff90_#66c0f4}">
@@ -191,34 +191,38 @@
 
             <UniformGrid Columns="2" Margin="0,0,0,5">
                 <Button Command="{Binding ToggleKeyboardCommand}" Margin="0,0,1,1"
+                        ToolTip="VIRTUAL: PC keyboard types text, the phone still shows its on-screen keyboard.&#x0a;PHYSICAL: the phone treats the PC keyboard as a physical one (no on-screen keyboard, gamepad supported).&#x0a;Click to switch mode (restarts mirroring)."
                         Opacity="{Binding IsKeyboardEnabled, Converter={StaticResource BooleanToDoubleConverter}, ConverterParameter=1.0_0.7}"
                         BorderBrush="{Binding IsKeyboardEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}">
                     <TextBlock Margin="10,3" FontSize="13"
-                               Text="{Binding IsKeyboardEnabled, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=KEYBOARD__ON_KEYBOARD__OFF}"
+                               Text="{Binding IsKeyboardEnabled, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=VIRTUAL__KEYBOARD_PHYSICAL__KEYBOARD}"
                                Foreground="{Binding IsKeyboardEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}"/>
                 </Button>
 
                 <Button Command="{Binding ToggleScreenCommand}" Margin="1,0,0,1"
+                        ToolTip="ON: the phone screen stays on while mirroring.&#x0a;OFF: the phone screen is turned off, the image is visible only on the PC.&#x0a;Click to switch mode (restarts mirroring)."
                         Opacity="{Binding IsScreenOffEnabled, Converter={StaticResource BooleanToDoubleConverter}, ConverterParameter=1.0_0.7}"
                         BorderBrush="{Binding IsScreenOffEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}">
                     <TextBlock Margin="10,3" FontSize="13"
-                               Text="{Binding IsScreenOffEnabled, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=SCREEN__ON_SCREEN__OFF}"
+                               Text="{Binding IsScreenOffEnabled, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=PHONE__SCREEN__ON_PHONE__SCREEN__OFF}"
                                Foreground="{Binding IsScreenOffEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}"/>
                 </Button>
 
                 <Button Command="{Binding ToggleAspectRatioCommand}" Margin="0,1,1,0"
+                        ToolTip="FREE WINDOW: resize the window freely, the phone rotates to portrait/landscape to match its shape.&#x0a;LOCKED RATIO: the window keeps the phone screen proportions.&#x0a;Click to switch mode (restarts mirroring)."
                         Opacity="{Binding IsAspectRatioUnlocked, Converter={StaticResource BooleanToDoubleConverter}, ConverterParameter=1.0_0.7}"
                         BorderBrush="{Binding IsAspectRatioUnlocked, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}">
                     <TextBlock Margin="10,3" FontSize="13"
-                               Text="{Binding IsAspectRatioUnlocked, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=RATIO__FREE_RATIO__LOCK}"
+                               Text="{Binding IsAspectRatioUnlocked, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=FREE__WINDOW_LOCKED__RATIO}"
                                Foreground="{Binding IsAspectRatioUnlocked, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}"/>
                 </Button>
 
                 <Button Command="{Binding ToggleAudioCommand}" Margin="1,1,0,0"
+                        ToolTip="ON PC: sound plays on the PC, the phone is muted.&#x0a;ON PHONE: sound stays on the phone, the PC plays nothing.&#x0a;Click to switch mode (restarts mirroring)."
                         Opacity="{Binding IsAudioEnabled, Converter={StaticResource BooleanToDoubleConverter}, ConverterParameter=1.0_0.7}"
                         BorderBrush="{Binding IsAudioEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}">
                     <TextBlock Margin="10,3" FontSize="13"
-                               Text="{Binding IsAudioEnabled, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=AUDIO__ON_AUDIO__OFF}"
+                               Text="{Binding IsAudioEnabled, Converter={StaticResource BooleanToStringConverter}, ConverterParameter=SOUND__ON__PC_SOUND__ON__PHONE}"
                                Foreground="{Binding IsAudioEnabled, Converter={StaticResource BooleanToColorConverter}, ConverterParameter=#66c0f4_#66c0f4}"/>
                 </Button>
             </UniformGrid>
