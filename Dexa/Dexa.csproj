@@ -9,7 +9,7 @@
         <UseWindowsForms>true</UseWindowsForms>
         <ApplicationIcon>Icons\Dexa.ico</ApplicationIcon>
         <StartupObject>Dexa.App</StartupObject>
-        <AssemblyName>Else.Dexa</AssemblyName>
+        <AssemblyName>Dexa</AssemblyName>
         <Authors>Else</Authors>
         <Copyright>Else</Copyright>
         <Company>Else</Company>

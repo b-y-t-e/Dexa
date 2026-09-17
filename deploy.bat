@@ -42,7 +42,7 @@ mkdir Releases
 
 REM Generate Velopack package (using vpk instead of Squirrel)
 echo Generating Velopack package...
-vpk pack --packId Else.Dexa --packVersion %VERSION% --packDir .\publish --mainExe Else.Dexa.exe
+vpk pack --packId Dexa --packVersion %VERSION% --packDir .\publish --mainExe Dexa.exe
 if %errorlevel% neq 0 (
     echo Package generation failed!
     pause
@@ -60,13 +60,13 @@ REM Load credentials from .env
 for /f "usebackq tokens=1,* delims==" %%A in (".env") do set %%A=%%B
 set UPLOAD_OK=1
 
-curl -s -T "Releases\Else.Dexa-win-Setup.exe" --user %FTP_USER% "%FTP_BASE%Else.Dexa-win-Setup.exe"
+curl -s -T "Releases\Dexa-win-Setup.exe" --user %FTP_USER% "%FTP_BASE%Dexa-win-Setup.exe"
 if %errorlevel% neq 0 set UPLOAD_OK=0
 
-curl -s -T "Releases\Else.Dexa-%VERSION%-full.nupkg" --user %FTP_USER% "%FTP_BASE%Else.Dexa-%VERSION%-full.nupkg"
+curl -s -T "Releases\Dexa-%VERSION%-full.nupkg" --user %FTP_USER% "%FTP_BASE%Dexa-%VERSION%-full.nupkg"
 if %errorlevel% neq 0 set UPLOAD_OK=0
 
-curl -s -T "Releases\Else.Dexa-win-Portable.zip" --user %FTP_USER% "%FTP_BASE%Else.Dexa-win-Portable.zip"
+curl -s -T "Releases\Dexa-win-Portable.zip" --user %FTP_USER% "%FTP_BASE%Dexa-win-Portable.zip"
 if %errorlevel% neq 0 set UPLOAD_OK=0
 
 curl -s -T "Releases\RELEASES" --user %FTP_USER% "%FTP_BASE%RELEASES"
@@ -85,7 +85,7 @@ if %UPLOAD_OK% equ 1 (
     echo Cleaning up old packages from FTP...
     curl -s --user %FTP_USER% --list-only "%FTP_BASE%" > _ftp_list.tmp
     for /f "tokens=*" %%F in ('findstr /i "full.nupkg" _ftp_list.tmp') do (
-        if /i not "%%F"=="Else.Dexa-%VERSION%-full.nupkg" (
+        if /i not "%%F"=="Dexa-%VERSION%-full.nupkg" (
             echo Deleting %%F ...
             curl -s --user %FTP_USER% "%FTP_BASE%" -Q "-DELE %%F" -o nul
         )
