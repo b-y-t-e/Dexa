@@ -57,14 +57,14 @@ Entites/Device                — model urządzenia (DeviceWindow, DeviceMedia)
 
 ## Patche scrcpy
 
-Źródła: `D:\work\sources\scrcpy-src` (v4.0, base commit `2322868`)
+Źródła: `D:\work\sources\scrcpy-src` (v4.1, gałąź `dexa-patches` zrebase’owana na tag `v4.1`)
 Dokumentacja patchów: `D:\work\sources\scrcpy-src\scrcpy-patches.md`
 
 Aktywne patche:
 - **`--no-auto-resize`** — blokuje automatyczne zmienianie rozmiaru okna przy rotacji urządzenia
 - **`--auto-rotate-on-resize`** — gdy użytkownik zmienia rozmiar okna, po 1s debounce obraca telefon przez ADB
 
-Przy upgrade scrcpy: `git pull` w scrcpy-src, nałożyć patche z `scrcpy-patches.md`, rebuild.
+Przy upgrade scrcpy: w scrcpy-src `git fetch --tags && git rebase <nowy-tag>` na gałęzi `dexa-patches`, podmienić `Dexa/scrcpy/scrcpy-server` na wersję z release (musi zgadzać się z klientem!), rebuild.
 
 ## Konwencje
 
